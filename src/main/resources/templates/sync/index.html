@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title>Synchronize Projects & Versions - Spring MCP Server</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="bi bi-arrow-repeat text-spring-green"></i>
+            Synchronize Projects & Versions
+        </h1>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill"></i>
+        <span th:text="${success}">Success message</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span th:text="${error}">Error message</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Introduction -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info" role="alert">
+                <i class="bi bi-info-circle-fill"></i>
+                <strong>About Synchronization:</strong> Use the sync features below to fetch the latest Spring projects
+                and versions from external sources like Spring Initializr and spring.io. This ensures your MCP server
+                has up-to-date information.
+            </div>
+        </div>
+    </div>
+
+    <!-- Comprehensive Sync Card (Featured) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-lg border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-stars"></i>
+                        Comprehensive Sync (Recommended)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text lead">
+                        Synchronize <strong>ALL</strong> Spring projects, versions, and documentation from all available sources.
+                        This is the complete sync that populates all data including:
+                    </p>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <ul class="small">
+                                <li><strong>Spring Boot versions</strong> (primary source)</li>
+                                <li><strong>Spring Generations</strong> (110+ projects)</li>
+                                <li><strong>Spring Initializr</strong> (Boot versions)</li>
+                                <li><strong>Project pages</strong> (documentation links)</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <ul class="small">
+                                <li><strong>Project relationships</strong> (parent/child)</li>
+                                <li><strong>Documentation content</strong> (Markdown)</li>
+                                <li><strong>Code examples</strong> (samples)</li>
+                                <li th:if="${openRewriteEnabled}"><strong style="color: #f97316;">Migration Recipes</strong> (OpenRewrite)</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <ul class="small">
+                                <li><strong style="color: #6366f1;">GitHub Documentation</strong> (AsciiDoc)</li>
+                                <li th:if="${javadocsEnabled}"><strong style="color: #0d9488;">Javadocs API</strong> (classes, methods)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="alert alert-info alert-permanent mb-3" role="alert">
+                        <i class="bi bi-lightbulb-fill"></i>
+                        <strong>Note:</strong> This sync runs all phases sequentially:
+                        <ol class="mb-0 mt-2">
+                            <li>Phase 0: Spring Boot versions (PRIMARY)</li>
+                            <li>Phase 1: Spring Generations API</li>
+                            <li>Phase 2: Spring Initializr API</li>
+                            <li>Phase 3: Crawl project pages for documentation</li>
+                            <li>Phase 4: Sync project relationships</li>
+                            <li>Phase 5: Sync documentation content (Markdown conversion)</li>
+                            <li>Phase 6: Sync code examples (Samples from spring.io)</li>
+                            <li th:if="${openRewriteEnabled}">Phase 7: Migration Recipes (OpenRewrite knowledge)</li>
+                            <li>Phase 8: GitHub Documentation (Antora/AsciiDoc from GitHub)</li>
+                            <li th:if="${javadocsEnabled}">Phase 9: Javadocs API Documentation</li>
+                        </ol>
+                    </div>
+
+                    <form method="post" th:action="@{/sync/all}" class="mb-0">
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="bi bi-stars"></i>
+                            Start Comprehensive Sync
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="bi bi-clock"></i>
+                        May take some minutes to complete all phases
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sync Progress Modal -->
+    <div class="modal fade" id="syncProgressModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="syncProgressModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content bg-dark border-success">
+                <div class="modal-header border-success">
+                    <h5 class="modal-title text-white" id="syncProgressModalLabel">
+                        <i class="bi bi-stars text-success"></i>
+                        Comprehensive Sync in Progress
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <!-- Progress Bar -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-white-50" id="sync-phase-text">Phase 0/9: Initializing...</span>
+                            <span class="text-white-50" id="sync-percent-text">0%</span>
+                        </div>
+                        <div class="progress" style="height: 30px; background-color: rgba(255, 255, 255, 0.1);">
+                            <div id="sync-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                                 role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                <span id="sync-progress-label">Starting...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase Indicators -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-4">
+                            <div class="phase-indicator" data-phase="0">
+                                <i class="bi bi-database-check text-secondary"></i>
+                                <small class="d-block text-white-50">Spring Boot Versions</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="phase-indicator" data-phase="1">
+                                <i class="bi bi-collection text-secondary"></i>
+                                <small class="d-block text-white-50">Generations API</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="phase-indicator" data-phase="2">
+                                <i class="bi bi-box text-secondary"></i>
+                                <small class="d-block text-white-50">Initializr API</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="phase-indicator" data-phase="3">
+                                <i class="bi bi-globe text-secondary"></i>
+                                <small class="d-block text-white-50">Crawl Pages</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="phase-indicator" data-phase="4">
+                                <i class="bi bi-diagram-3 text-secondary"></i>
+                                <small class="d-block text-white-50">Relationships</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="phase-indicator" data-phase="5">
+                                <i class="bi bi-file-earmark-text text-secondary"></i>
+                                <small class="d-block text-white-50">Documentation</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="phase-indicator" data-phase="6">
+                                <i class="bi bi-code-square text-secondary"></i>
+                                <small class="d-block text-white-50">Code Examples</small>
+                            </div>
+                        </div>
+                        <div class="col-4" th:if="${openRewriteEnabled}">
+                            <div class="phase-indicator" data-phase="7">
+                                <i class="bi bi-arrow-repeat text-secondary" style="color: #f97316 !important;"></i>
+                                <small class="d-block text-white-50">Migration Recipes</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="phase-indicator" data-phase="8">
+                                <i class="bi bi-github text-secondary"></i>
+                                <small class="d-block text-white-50">GitHub Docs</small>
+                            </div>
+                        </div>
+                        <div class="col-4" th:if="${javadocsEnabled}">
+                            <div class="phase-indicator" data-phase="9">
+                                <i class="bi bi-file-earmark-code text-secondary" style="color: #0d9488 !important;"></i>
+                                <small class="d-block text-white-50">Javadocs</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Messages -->
+                    <div id="sync-status-message" class="alert alert-info border-info text-white" role="alert" style="background-color: rgba(23, 162, 184, 0.2); display: none;">
+                        <i class="bi bi-info-circle"></i>
+                        <span id="sync-status-text"></span>
+                    </div>
+
+                    <!-- Error Messages -->
+                    <div id="sync-error-message" class="alert alert-danger border-danger text-white" role="alert" style="background-color: rgba(220, 53, 69, 0.2); display: none;">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <span id="sync-error-text"></span>
+                    </div>
+                </div>
+                <div class="modal-footer border-success">
+                    <button type="button" class="btn btn-secondary" id="sync-close-btn" disabled>
+                        <i class="bi bi-x-circle"></i>
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Individual Sync Phases (7 Steps) -->
+    <h3 class="mb-3">
+        <i class="bi bi-list-ol text-spring-green"></i>
+        Individual Sync Steps
+    </h3>
+    <p class="text-muted mb-4">
+        Each sync step can be run individually, or use <strong>Comprehensive Sync</strong> above to run all steps sequentially.
+    </p>
+
+    <div class="row g-4">
+        <!-- Phase 0: Spring Boot Versions -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-spring-green text-white">
+                    <h6 class="card-title mb-0">
+                        <span class="badge bg-white text-spring-green me-2">0</span>
+                        <i class="bi bi-database-check"></i>
+                        Spring Boot Versions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text small">
+                        Fetch Spring Boot versions from Initializr API and populate the primary spring_boot_versions table.
+                    </p>
+                    <form method="post" th:action="@{/sync/spring-boot}" class="mb-0 sync-form">
+                        <button type="submit" class="btn btn-sm btn-spring-green w-100 sync-btn">
+                            <span class="btn-text">
+                                <i class="bi bi-arrow-repeat"></i>
+                                Sync
+                            </span>
+                            <span class="btn-spinner d-none">
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                Syncing...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="bi bi-clock"></i>
+                        ~5-10 seconds
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 1: Spring Generations -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-spring-green text-white">
+                    <h6 class="card-title mb-0">
+                        <span class="badge bg-white text-spring-green me-2">1</span>
+                        <i class="bi bi-collection"></i>
+                        Spring Generations
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text small">
+                        Sync 16+ Boot versions and 110+ projects per version from Spring Generations API.
+                    </p>
+                    <form method="post" th:action="@{/sync/generations}" class="mb-0 sync-form">
+                        <button type="submit" class="btn btn-sm btn-spring-green w-100 sync-btn">
+                            <span class="btn-text">
+                                <i class="bi bi-arrow-repeat"></i>
+                                Sync
+                            </span>
+                            <span class="btn-spinner d-none">
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                Syncing...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="bi bi-clock"></i>
+                        ~30-60 seconds
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 2: Spring Initializr (included in Phase 0) -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-secondary">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="card-title mb-0">
+                        <span class="badge bg-white text-secondary me-2">2</span>
+                        <i class="bi bi-box"></i>
+                        Spring Initializr
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text small">
+                        Included in <strong>Phase 0</strong> (Spring Boot Versions sync).
+                    </p>
+                    <button type="button" class="btn btn-sm btn-outline-secondary w-100" disabled>
+                        <i class="bi bi-info-circle"></i>
+                        Runs with Phase 0
+                    </button>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="bi bi-link-45deg"></i>
+                        No separate action
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 3: Crawl Project Pages -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-spring-green text-white">
+                    <h6 class="card-title mb-0">
+                        <span class="badge bg-white text-spring-green me-2">3</span>
+                        <i class="bi bi-globe"></i>
+                        Crawl Project Pages
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text small">
+                        Crawl all Spring project pages to extract documentation links and support dates.
+                    </p>
+                    <form method="post" th:action="@{/sync/crawl-pages}" class="mb-0 sync-form">
+                        <button type="submit" class="btn btn-sm btn-spring-green w-100 sync-btn">
+                            <span class="btn-text">
+                                <i class="bi bi-arrow-repeat"></i>
+                                Sync
+                            </span>
+                            <span class="btn-spinner d-none">
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                Syncing...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="bi bi-clock"></i>
+                        ~30-90 seconds
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 4: Project Relationships -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-spring-green text-white">
+                    <h6 class="card-title mb-0">
+                        <span class="badge bg-white text-spring-green me-2">4</span>
+                        <i class="bi bi-diagram-3"></i>
+                        Project Relationships
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text small">
+                        Detect and sync parent/child relationships between Spring projects (e.g., Spring Data → JPA).
+                    </p>
+                    <form method="post" th:action="@{/sync/relationships}" class="mb-0 sync-form">
+                        <button type="submit" class="btn btn-sm btn-spring-green w-100 sync-btn">
+                            <span class="btn-text">
+                                <i class="bi bi-arrow-repeat"></i>
+                                Sync
+                            </span>
+                            <span class="btn-spinner d-none">
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                Syncing...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="bi bi-clock"></i>
+                        ~10-20 seconds
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 5: Documentation Content -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-spring-green text-white">
+                    <h6 class="card-title mb-0">
+                        <span class="badge bg-white text-spring-green me-2">5</span>
+                        <i class="bi bi-file-earmark-text"></i>
+                        Documentation Content
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text small">
+                        Fetch and convert documentation content from spring.io project pages to Markdown.
+                    </p>
+                    <form method="post" th:action="@{/sync/documentation}" class="mb-0 sync-form">
+                        <button type="submit" class="btn btn-sm btn-spring-green w-100 sync-btn">
+                            <span class="btn-text">
+                                <i class="bi bi-arrow-repeat"></i>
+                                Sync
+                            </span>
+                            <span class="btn-spinner d-none">
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                Syncing...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="bi bi-clock"></i>
+                        ~2-10 minutes
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 6: Code Examples -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-spring-green text-white">
+                    <h6 class="card-title mb-0">
+                        <span class="badge bg-white text-spring-green me-2">6</span>
+                        <i class="bi bi-code-square"></i>
+                        Code Examples
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text small">
+                        Extract code examples and sample repositories from Spring project pages and guides.
+                    </p>
+                    <form method="post" th:action="@{/sync/examples}" class="mb-0 sync-form">
+                        <button type="submit" class="btn btn-sm btn-spring-green w-100 sync-btn">
+                            <span class="btn-text">
+                                <i class="bi bi-arrow-repeat"></i>
+                                Sync
+                            </span>
+                            <span class="btn-spinner d-none">
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                Syncing...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="bi bi-clock"></i>
+                        ~20-40 seconds
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 7: Migration Recipes (OpenRewrite) - Conditional -->
+        <div class="col-md-6 col-lg-4" th:if="${openRewriteEnabled}">
+            <div class="card h-100 shadow-sm" style="border-color: #f97316;">
+                <div class="card-header text-white" style="background-color: #f97316;">
+                    <h6 class="card-title mb-0">
+                        <span class="badge bg-white me-2" style="color: #f97316;">7</span>
+                        <i class="bi bi-arrow-repeat"></i>
+                        Migration Recipes
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text small">
+                        Sync OpenRewrite migration knowledge including recipes, transformations, and breaking changes.
+                    </p>
+                    <form method="post" th:action="@{/sync/recipes}" class="mb-0 sync-form">
+                        <button type="submit" class="btn btn-sm w-100 sync-btn" style="background-color: #f97316; border-color: #f97316; color: white;">
+                            <span class="btn-text">
+                                <i class="bi bi-arrow-repeat"></i>
+                                Sync
+                            </span>
+                            <span class="btn-spinner d-none">
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                Syncing...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="bi bi-clock"></i>
+                        ~5-10 seconds
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 8: GitHub Documentation -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm" style="border-color: #6366f1;">
+                <div class="card-header text-white" style="background-color: #6366f1;">
+                    <h6 class="card-title mb-0">
+                        <span class="badge bg-white me-2" style="color: #6366f1;">8</span>
+                        <i class="bi bi-github"></i>
+                        GitHub Documentation
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text small">
+                        Fetch Antora/AsciiDoc documentation from Spring GitHub repositories (spring-boot, spring-security, etc.).
+                    </p>
+                    <form method="post" th:action="@{/sync/github-docs}" class="mb-0 sync-form">
+                        <button type="submit" class="btn btn-sm w-100 sync-btn" style="background-color: #6366f1; border-color: #6366f1; color: white;">
+                            <span class="btn-text">
+                                <i class="bi bi-arrow-repeat"></i>
+                                Sync
+                            </span>
+                            <span class="btn-spinner d-none">
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                Syncing...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="bi bi-clock"></i>
+                        ~2-10 minutes
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 9: Javadocs - Conditional -->
+        <div class="col-md-6 col-lg-4" th:if="${javadocsEnabled}">
+            <div class="card h-100 shadow-sm" style="border-color: #0d9488;">
+                <div class="card-header text-white" style="background-color: #0d9488;">
+                    <h6 class="card-title mb-0">
+                        <span class="badge bg-white me-2" style="color: #0d9488;">9</span>
+                        <i class="bi bi-file-earmark-code"></i>
+                        Javadocs API Documentation
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text small">
+                        Download and parse Javadoc API documentation from Spring project API doc URLs for AI-accessible class/method documentation.
+                    </p>
+                    <form method="post" th:action="@{/sync/javadocs}" class="mb-0 sync-form">
+                        <button type="submit" class="btn btn-sm w-100 sync-btn" style="background-color: #0d9488; border-color: #0d9488; color: white;">
+                            <span class="btn-text">
+                                <i class="bi bi-arrow-repeat"></i>
+                                Sync
+                            </span>
+                            <span class="btn-spinner d-none">
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                Syncing...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="bi bi-clock"></i>
+                        ~2-5 minutes
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Languages Evolution (Java/Kotlin) - Conditional -->
+        <div class="col-md-6 col-lg-4" th:if="${languageEvolutionEnabled}">
+            <div class="card h-100 shadow-sm" style="border-color: #8b5cf6;">
+                <div class="card-header text-white" style="background-color: #8b5cf6;">
+                    <h6 class="card-title mb-0">
+                        <span class="badge bg-white me-2" style="color: #8b5cf6;">
+                            <i class="bi bi-braces"></i>
+                        </span>
+                        <i class="bi bi-code-slash"></i>
+                        Languages (Java/Kotlin)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text small">
+                        Sync Java and Kotlin language versions, features, deprecations, and code examples.
+                    </p>
+                    <form method="post" th:action="@{/sync/languages}" class="mb-0 sync-form">
+                        <button type="submit" class="btn btn-sm w-100 sync-btn" style="background-color: #8b5cf6; border-color: #8b5cf6; color: white;">
+                            <span class="btn-text">
+                                <i class="bi bi-arrow-repeat"></i>
+                                Sync
+                            </span>
+                            <span class="btn-spinner d-none">
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                Syncing...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="bi bi-clock"></i>
+                        ~10-20 seconds
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fix Documentation Versions - Only shown when enabled (one-time cleanup utility) -->
+        <div class="col-md-6 col-lg-4" th:if="${fixVersionsEnabled}">
+            <div class="card h-100 shadow-sm" style="border-color: #f59e0b;">
+                <div class="card-header text-white" style="background-color: #f59e0b;">
+                    <h6 class="card-title mb-0">
+                        <span class="badge bg-white me-2" style="color: #f59e0b;">
+                            <i class="bi bi-wrench"></i>
+                        </span>
+                        <i class="bi bi-patch-check"></i>
+                        Fix Documentation Versions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text small">
+                        Fix documentation links that point to placeholder versions (e.g., "1.0.x"). Updates links to use actual latest GA versions.
+                    </p>
+                    <form method="post" th:action="@{/sync/fix-documentation-versions}" class="mb-0 sync-form">
+                        <button type="submit" class="btn btn-sm w-100 sync-btn" style="background-color: #f59e0b; border-color: #f59e0b; color: white;">
+                            <span class="btn-text">
+                                <i class="bi bi-wrench"></i>
+                                Fix Versions
+                            </span>
+                            <span class="btn-spinner d-none">
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                Fixing...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="bi bi-clock"></i>
+                        ~5-10 seconds
+                    </small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Sync Guide -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-book text-spring-green"></i>
+                        Sync Guide
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6>How Synchronization Works</h6>
+                    <ol>
+                        <li><strong>Data Fetching:</strong> The system connects to external APIs (like Spring Initializr) to fetch the latest project and version information.</li>
+                        <li><strong>Version Parsing:</strong> Version strings are parsed to extract major, minor, and patch numbers, along with type indicators (STABLE, RC, SNAPSHOT, MILESTONE).</li>
+                        <li><strong>Database Update:</strong> New projects and versions are created in the database. Existing entries are not duplicated.</li>
+                        <li><strong>Default Marking:</strong> The latest stable version is marked as the default/latest for each project.</li>
+                    </ol>
+
+                    <h6 class="mt-4">Sync Phases Overview</h6>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 80px;">Phase</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th style="width: 100px;">Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="badge bg-success">0</span></td>
+                                    <td>Spring Boot Versions</td>
+                                    <td>Fetch Spring Boot versions from Initializr API (primary source)</td>
+                                    <td>~5-10s</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-success">1</span></td>
+                                    <td>Spring Generations</td>
+                                    <td>Sync 16+ Boot versions and 110+ projects per version from Generations API</td>
+                                    <td>~30-60s</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-secondary">2</span></td>
+                                    <td>Spring Initializr</td>
+                                    <td>Additional Boot versions (included in Phase 0)</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-success">3</span></td>
+                                    <td>Crawl Project Pages</td>
+                                    <td>Extract documentation links and support dates from spring.io project pages</td>
+                                    <td>~30-90s</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-success">4</span></td>
+                                    <td>Project Relationships</td>
+                                    <td>Detect parent/child relationships (e.g., Spring Data → JPA, MongoDB)</td>
+                                    <td>~10-20s</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-success">5</span></td>
+                                    <td>Documentation Content</td>
+                                    <td>Fetch and convert documentation from spring.io to Markdown</td>
+                                    <td>~60-120s</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-success">6</span></td>
+                                    <td>Code Examples</td>
+                                    <td>Extract code examples and sample repositories from project pages</td>
+                                    <td>~20-40s</td>
+                                </tr>
+                                <tr class="table-warning">
+                                    <td><span class="badge" style="background-color: #f97316;">7</span></td>
+                                    <td>Migration Recipes</td>
+                                    <td>OpenRewrite migration knowledge (conditional - if enabled)</td>
+                                    <td>~5-10s</td>
+                                </tr>
+                                <tr class="table-info">
+                                    <td><span class="badge" style="background-color: #6366f1;">8</span></td>
+                                    <td>GitHub Documentation</td>
+                                    <td>Antora/AsciiDoc docs from spring-projects GitHub repositories</td>
+                                    <td>~60-120s</td>
+                                </tr>
+                                <tr class="table-success">
+                                    <td><span class="badge" style="background-color: #0d9488;">9</span></td>
+                                    <td>Javadocs API</td>
+                                    <td>Download and parse Javadoc API documentation (conditional - if enabled)</td>
+                                    <td>~2-5min</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h6 class="mt-4">Additional Sync Options (Outside Main Phases)</h6>
+                    <ul>
+                        <li><strong style="color: #8b5cf6;">Languages (Java/Kotlin):</strong> Sync language versions, features, deprecations - runs independently from comprehensive sync</li>
+                        <li><strong style="color: #f59e0b;">Fix Documentation Versions:</strong> One-time utility to fix placeholder versions in documentation links (hidden by default)</li>
+                    </ul>
+
+                    <h6 class="mt-4">Best Practices</h6>
+                    <ul>
+                        <li><strong>Initial Setup:</strong> Run <strong>Comprehensive Sync</strong> after first installation to populate all data (runs all 10 phases).</li>
+                        <li><strong>Regular Updates:</strong> Run Comprehensive Sync periodically (weekly or monthly) to stay current with new Spring releases.</li>
+                        <li><strong>Targeted Updates:</strong> Use individual sync steps when you only need to refresh specific data.</li>
+                        <li><strong>Javadoc Version Filter:</strong> Configure which version types (SNAPSHOT, RC, Milestone) to include in Javadoc sync via Settings page.</li>
+                        <li><strong>Monitor Progress:</strong> Watch the real-time progress indicators during Comprehensive Sync to track each phase.</li>
+                        <li><strong>Check Results:</strong> Review success/error messages after each sync to ensure data integrity.</li>
+                        <li><strong>Sequential Execution:</strong> Individual syncs can be run in any order, but for complete data, use Comprehensive Sync which runs all phases sequentially.</li>
+                    </ul>
+
+                    <h6 class="mt-4">
+                        <i class="bi bi-exclamation-triangle text-warning"></i>
+                        Troubleshooting
+                    </h6>
+                    <div class="alert alert-warning alert-permanent border-warning" role="alert">
+                        <strong><i class="bi bi-tools me-1"></i> Common Issues:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li><strong>Network Errors:</strong> Ensure the server has internet access to reach external APIs (spring.io, start.spring.io, GitHub).</li>
+                            <li><strong>API Changes:</strong> External APIs may change structure; check logs for parsing errors.</li>
+                            <li><strong>Duplicate Entries:</strong> The system prevents duplicates, but check database constraints are in place.</li>
+                            <li><strong>Javadoc Sync Failures:</strong> If a project fails 5 consecutive times, sync is auto-disabled. Re-enable in Projects page.</li>
+                            <li><strong>Rate Limiting:</strong> GitHub API has rate limits (60 req/hour unauthenticated). Configure GITHUB_TOKEN for 5000 req/hour.</li>
+                        </ul>
+                    </div>
+                    <div class="alert alert-info alert-permanent border-info" role="alert">
+                        <strong><i class="bi bi-journal-text me-1"></i> Checking Logs:</strong>
+                        <p class="mb-0 mt-2">
+                            Monitor application logs for detailed sync progress and errors.
+                            Log level for sync operations: <code>com.spring.mcp.service.sync</code> at DEBUG level.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles -->
+<th:block layout:fragment="scripts">
+    <style>
+        .bg-spring-green {
+            background-color: #6db33f;
+        }
+
+        .text-spring-green {
+            color: #6db33f;
+        }
+
+        .btn-spring-green {
+            background-color: #6db33f;
+            border-color: #6db33f;
+            color: white;
+        }
+
+        .btn-spring-green:hover {
+            background-color: #5a9a35;
+            border-color: #5a9a35;
+            color: white;
+        }
+
+        .card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Progress Modal Styles */
+        .phase-indicator {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .phase-indicator.active {
+            background-color: rgba(109, 179, 63, 0.2);
+            border-color: #6db33f;
+        }
+
+        .phase-indicator.active i {
+            color: #6db33f !important;
+            transform: scale(1.2);
+        }
+
+        .phase-indicator.completed {
+            background-color: rgba(40, 167, 69, 0.2);
+            border-color: #28a745;
+        }
+
+        .phase-indicator.completed i {
+            color: #28a745 !important;
+        }
+
+        .phase-indicator i {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .modal-content.bg-dark {
+            background-color: #1f2326 !important;
+        }
+
+        .modal-header.border-success,
+        .modal-footer.border-success {
+            border-color: rgba(109, 179, 63, 0.3) !important;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const comprehensiveSyncForm = document.querySelector('form[action*="/sync/all"]');
+            const progressModal = new bootstrap.Modal(document.getElementById('syncProgressModal'));
+            const progressBar = document.getElementById('sync-progress-bar');
+            const progressLabel = document.getElementById('sync-progress-label');
+            const phaseText = document.getElementById('sync-phase-text');
+            const percentText = document.getElementById('sync-percent-text');
+            const statusMessage = document.getElementById('sync-status-message');
+            const statusText = document.getElementById('sync-status-text');
+            const errorMessage = document.getElementById('sync-error-message');
+            const errorText = document.getElementById('sync-error-text');
+            const closeBtn = document.getElementById('sync-close-btn');
+
+            let eventSource = null;
+
+            // Intercept comprehensive sync form submission
+            if (comprehensiveSyncForm) {
+                comprehensiveSyncForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    // Reset modal state
+                    resetModal();
+
+                    // Show the modal
+                    progressModal.show();
+
+                    // Connect to SSE endpoint
+                    connectToProgress();
+
+                    // Submit the form via fetch
+                    fetch(this.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        }
+                    }).catch(error => {
+                        console.error('Error submitting sync:', error);
+                        showError('Failed to start sync: ' + error.message);
+                    });
+                });
+            }
+
+            function resetModal() {
+                progressBar.style.width = '0%';
+                progressBar.setAttribute('aria-valuenow', 0);
+                progressLabel.textContent = 'Starting...';
+                phaseText.textContent = 'Phase 0/9: Initializing...';
+                percentText.textContent = '0%';
+                statusMessage.style.display = 'none';
+                errorMessage.style.display = 'none';
+                closeBtn.disabled = true;
+
+                // Reset all phase indicators
+                document.querySelectorAll('.phase-indicator').forEach(indicator => {
+                    indicator.classList.remove('active', 'completed');
+                });
+            }
+
+            function connectToProgress() {
+                if (eventSource) {
+                    eventSource.close();
+                }
+
+                eventSource = new EventSource('/sync/progress');
+
+                eventSource.addEventListener('progress', function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        updateProgress(data);
+                    } catch (error) {
+                        console.error('Error parsing progress data:', error);
+                    }
+                });
+
+                eventSource.onerror = function(error) {
+                    console.error('SSE connection error:', error);
+                    if (eventSource.readyState === EventSource.CLOSED) {
+                        console.log('SSE connection closed');
+                    }
+                };
+            }
+
+            function updateProgress(data) {
+                console.log('Progress update:', data);
+
+                // Update progress bar
+                progressBar.style.width = data.progressPercent + '%';
+                progressBar.setAttribute('aria-valuenow', data.progressPercent);
+                progressLabel.textContent = data.phaseDescription;
+                phaseText.textContent = `Phase ${data.currentPhase}/${data.totalPhases}: ${data.phaseDescription}`;
+                percentText.textContent = data.progressPercent + '%';
+
+                // Update phase indicators
+                updatePhaseIndicators(data.currentPhase, data.status);
+
+                // Show status message if provided
+                if (data.message) {
+                    statusText.textContent = data.message;
+                    statusMessage.style.display = 'block';
+                }
+
+                // Handle errors
+                if (data.status === 'error') {
+                    showError(data.errorMessage || 'An error occurred during sync');
+                }
+
+                // Handle completion
+                if (data.completed) {
+                    handleCompletion(data);
+                }
+            }
+
+            function updatePhaseIndicators(currentPhase, status) {
+                document.querySelectorAll('.phase-indicator').forEach(indicator => {
+                    const phase = parseInt(indicator.getAttribute('data-phase'));
+
+                    // Remove active/completed classes
+                    indicator.classList.remove('active', 'completed');
+
+                    if (phase < currentPhase) {
+                        // Completed phases
+                        indicator.classList.add('completed');
+                    } else if (phase === currentPhase) {
+                        // Current phase
+                        if (status === 'running') {
+                            indicator.classList.add('active');
+                        } else if (status === 'completed') {
+                            indicator.classList.add('completed');
+                        }
+                    }
+                });
+            }
+
+            function showError(message) {
+                errorText.textContent = message;
+                errorMessage.style.display = 'block';
+                progressBar.classList.remove('bg-success');
+                progressBar.classList.add('bg-danger');
+                progressBar.classList.remove('progress-bar-animated');
+            }
+
+            function handleCompletion(data) {
+                // Close SSE connection
+                if (eventSource) {
+                    eventSource.close();
+                    eventSource = null;
+                }
+
+                // Enable close button
+                closeBtn.disabled = false;
+
+                // Update progress bar to completed state
+                if (data.status === 'completed') {
+                    progressBar.classList.remove('progress-bar-animated');
+                    progressLabel.textContent = 'Sync Complete!';
+
+                    // Auto-close after 2 seconds and reload page
+                    setTimeout(function() {
+                        progressModal.hide();
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    progressBar.classList.remove('progress-bar-animated');
+                    progressLabel.textContent = 'Sync Failed';
+                }
+            }
+
+            // Close button handler
+            closeBtn.addEventListener('click', function() {
+                if (eventSource) {
+                    eventSource.close();
+                    eventSource = null;
+                }
+                progressModal.hide();
+                window.location.reload();
+            });
+        });
+
+        // Individual sync button loading states
+        document.querySelectorAll('.sync-form').forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                const btn = this.querySelector('.sync-btn');
+                const btnText = btn.querySelector('.btn-text');
+                const btnSpinner = btn.querySelector('.btn-spinner');
+
+                // Show loading state
+                btn.disabled = true;
+                btnText.classList.add('d-none');
+                btnSpinner.classList.remove('d-none');
+            });
+        });
+    </script>
+</th:block>
+</body>
+</html>

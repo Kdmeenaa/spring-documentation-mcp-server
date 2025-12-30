@@ -1,0 +1,1844 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title>Settings - Spring MCP Server</title>
+    <style>
+        /* Beautiful Dark Theme Schedule Status Card */
+        .schedule-status-card {
+            background: linear-gradient(135deg, #1a1f2e 0%, #252d3d 100%);
+            border-radius: 12px;
+            border: 1px solid rgba(99, 179, 237, 0.2);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3),
+                        0 0 20px rgba(99, 179, 237, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .schedule-status-card:hover {
+            border-color: rgba(99, 179, 237, 0.4);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4),
+                        0 0 30px rgba(99, 179, 237, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .schedule-status-header {
+            background: linear-gradient(90deg, rgba(99, 179, 237, 0.15) 0%, rgba(99, 179, 237, 0.05) 100%);
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid rgba(99, 179, 237, 0.2);
+            font-weight: 600;
+            font-size: 1rem;
+            color: #63b3ed;
+            letter-spacing: 0.5px;
+        }
+
+        .schedule-status-body {
+            padding: 1.5rem;
+        }
+
+        .status-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.2s ease;
+            height: 100%;
+        }
+
+        .status-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(99, 179, 237, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .status-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #a0aec0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .status-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+        }
+
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .badge-status-active {
+            background: linear-gradient(135deg, rgba(72, 187, 120, 0.2) 0%, rgba(72, 187, 120, 0.1) 100%);
+            color: #68d391;
+            border: 1px solid rgba(72, 187, 120, 0.3);
+        }
+
+        .badge-status-active:hover {
+            background: linear-gradient(135deg, rgba(72, 187, 120, 0.3) 0%, rgba(72, 187, 120, 0.15) 100%);
+            box-shadow: 0 0 15px rgba(72, 187, 120, 0.2);
+        }
+
+        .time-display {
+            background: linear-gradient(135deg, rgba(99, 179, 237, 0.15) 0%, rgba(99, 179, 237, 0.05) 100%);
+            color: #63b3ed;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Courier New', monospace;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border: 1px solid rgba(99, 179, 237, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .text-primary-custom {
+            color: #63b3ed;
+            font-weight: 500;
+        }
+
+        .text-muted-custom {
+            color: #718096;
+            font-style: italic;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .schedule-status-body {
+                padding: 1rem;
+            }
+
+            .status-item {
+                padding: 0.75rem;
+            }
+        }
+
+        /* Dark Theme Accordion for Schedulers */
+        .schedule-status-card .accordion-item {
+            background: transparent;
+            border-color: rgba(99, 179, 237, 0.15) !important;
+        }
+
+        .schedule-status-card .accordion-button {
+            background: rgba(255, 255, 255, 0.03);
+            color: #e2e8f0;
+            border: none;
+            box-shadow: none;
+        }
+
+        .schedule-status-card .accordion-button:not(.collapsed) {
+            background: rgba(99, 179, 237, 0.1);
+            color: #63b3ed;
+            box-shadow: none;
+        }
+
+        .schedule-status-card .accordion-button::after {
+            filter: invert(1);
+        }
+
+        .schedule-status-card .accordion-button:focus {
+            box-shadow: none;
+            border-color: rgba(99, 179, 237, 0.3);
+        }
+
+        .schedule-status-card .accordion-body {
+            background: rgba(255, 255, 255, 0.02);
+            color: #a0aec0;
+        }
+
+        .schedule-status-card .form-label {
+            color: #a0aec0;
+        }
+
+        .schedule-status-card .form-select,
+        .schedule-status-card .form-control {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: rgba(99, 179, 237, 0.2);
+            color: #e2e8f0;
+        }
+
+        .schedule-status-card .form-select:focus,
+        .schedule-status-card .form-control:focus {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: rgba(99, 179, 237, 0.5);
+            box-shadow: 0 0 0 0.2rem rgba(99, 179, 237, 0.15);
+            color: #e2e8f0;
+        }
+
+        .schedule-status-card .form-select option {
+            background-color: #1a1f2e;
+            color: #e2e8f0;
+        }
+
+        .schedule-status-card .form-check-input {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(99, 179, 237, 0.3);
+        }
+
+        .schedule-status-card .form-check-input:checked {
+            background-color: #63b3ed;
+            border-color: #63b3ed;
+        }
+
+        .schedule-status-card .form-check-label {
+            color: #e2e8f0;
+        }
+
+        .schedule-status-card .btn-primary {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            border: none;
+        }
+
+        .schedule-status-card .btn-primary:hover {
+            background: linear-gradient(135deg, #63b3ed 0%, #4299e1 100%);
+        }
+
+        .schedule-status-card .form-text {
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <h1 class="mb-4">
+        <i class="bi bi-gear-fill text-spring-green"></i> Settings
+    </h1>
+
+    <!-- MCP Server Settings -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0">
+                <i class="bi bi-server"></i> MCP Server Configuration
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-muted">Server Status</label>
+                    <div>
+                        <span class="badge bg-success">
+                            <i class="bi bi-check-circle"></i> <span th:text="${mcpServerStatus}">Running</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-muted">Server Port</label>
+                    <div>
+                        <code th:text="${mcpServerPort}">8080</code>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-muted">Database Status</label>
+                    <div>
+                        <span class="badge bg-success">
+                            <i class="bi bi-check-circle"></i> <span th:text="${databaseStatus}">Connected</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-muted">MCP Endpoint</label>
+                    <div>
+                        <code>/mcp/spring/sse</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Settings -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0">
+                <i class="bi bi-sliders"></i> Application Settings
+            </h5>
+        </div>
+        <div class="card-body">
+            <!-- Success/Error Messages -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle"></i> <span th:text="${success}">Settings saved</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle"></i> <span th:text="${error}">Error occurred</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Enterprise Subscription Form -->
+            <form th:action="@{/settings}" method="post" id="settingsForm">
+                <div class="mb-4">
+                    <h6 class="mb-3">
+                        <i class="bi bi-building"></i> Support Subscription
+                    </h6>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox"
+                               id="enterpriseSubscriptionEnabled"
+                               name="enterpriseSubscriptionEnabled"
+                               th:checked="${settings.enterpriseSubscriptionEnabled}"
+                               onchange="document.getElementById('settingsForm').submit()">
+                        <label class="form-check-label" for="enterpriseSubscriptionEnabled">
+                            <strong>Enterprise Support Subscription Enabled</strong>
+                        </label>
+                    </div>
+                    <small class="form-text text-muted d-block mt-2">
+                        <i class="bi bi-info-circle"></i>
+                        When enabled, version support status will be determined by Enterprise Support End dates.
+                        When disabled, OSS Support End dates will be used instead.
+                        <strong>Settings are saved automatically when you toggle.</strong>
+                    </small>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="mb-2">Current Status</h6>
+                    <div>
+                        <span th:if="${settings.enterpriseSubscriptionEnabled}" class="badge bg-success">
+                            <i class="bi bi-building-check"></i> Enterprise Support Active
+                        </span>
+                        <span th:unless="${settings.enterpriseSubscriptionEnabled}" class="badge bg-primary">
+                            <i class="bi bi-code-square"></i> OSS Support Only
+                        </span>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Javadoc Sync Version Filter (Release 1.4.3) -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0">
+                <i class="bi bi-file-earmark-code" style="color: #f59e0b;"></i> Javadoc Sync Version Filter
+            </h5>
+            <small class="text-muted">Control which version types are included in Javadoc API documentation sync</small>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-3">
+                <i class="bi bi-info-circle"></i>
+                By default, only GA (General Availability) and CURRENT versions are synced. Enable the options below to include
+                pre-release versions in the Javadoc sync process. This affects all projects with Javadoc sync enabled.
+            </p>
+
+            <div class="row g-3 mb-3">
+                <!-- SNAPSHOT Toggle -->
+                <div class="col-md-4">
+                    <div class="card h-100 border-warning">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-title text-warning mb-1">
+                                        <i class="bi bi-lightning-charge"></i> SNAPSHOT
+                                    </h6>
+                                    <small class="text-muted">e.g., 2.0.0-SNAPSHOT</small>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox"
+                                           id="javadocSyncSnapshot"
+                                           th:checked="${settings.javadocSyncSnapshot}"
+                                           onchange="updateJavadocFilter()">
+                                </div>
+                            </div>
+                            <p class="card-text mt-2 small text-muted">
+                                Development builds with latest changes. May contain unstable APIs.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RC Toggle -->
+                <div class="col-md-4">
+                    <div class="card h-100 border-info">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-title text-info mb-1">
+                                        <i class="bi bi-box-seam"></i> Release Candidate (RC)
+                                    </h6>
+                                    <small class="text-muted">e.g., 1.0.0-RC1, 1.0.0-RC2</small>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox"
+                                           id="javadocSyncRc"
+                                           th:checked="${settings.javadocSyncRc}"
+                                           onchange="updateJavadocFilter()">
+                                </div>
+                            </div>
+                            <p class="card-text mt-2 small text-muted">
+                                Pre-release versions close to final release. APIs mostly stable.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Milestone Toggle -->
+                <div class="col-md-4">
+                    <div class="card h-100 border-primary">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-title text-primary mb-1">
+                                        <i class="bi bi-flag"></i> Milestone (M)
+                                    </h6>
+                                    <small class="text-muted">e.g., 1.0.0-M1, 1.0.0-M2</small>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox"
+                                           id="javadocSyncMilestone"
+                                           th:checked="${settings.javadocSyncMilestone}"
+                                           onchange="updateJavadocFilter()">
+                                </div>
+                            </div>
+                            <p class="card-text mt-2 small text-muted">
+                                Early preview releases. APIs may change significantly.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status indicator -->
+            <div id="javadocFilterStatus" class="alert alert-light border mb-0" style="display: none;">
+                <i class="bi bi-check-circle text-success"></i>
+                <span id="javadocFilterMessage">Settings saved</span>
+            </div>
+
+            <div class="alert alert-info mb-0">
+                <i class="bi bi-lightbulb"></i>
+                <strong>Tip:</strong> Keeping pre-release versions disabled reduces sync time and storage usage.
+                Enable them only if you need to reference upcoming API changes in your documentation.
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedulers Section (Dark Theme) -->
+    <div class="schedule-status-card mb-4">
+        <div class="schedule-status-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="bi bi-calendar-range me-2"></i>
+                <span>Schedulers</span>
+                <small class="d-block text-muted mt-1" style="font-weight: 400; font-size: 0.8rem;">Configure automatic synchronization schedules</small>
+            </div>
+            <!-- Global Time Format Toggle -->
+            <div class="d-flex align-items-center">
+                <span class="text-muted me-2 small">Time Format:</span>
+                <div class="btn-group btn-group-sm" role="group">
+                    <input type="radio" class="btn-check" name="globalTimeFormatToggle" id="globalFormat24h"
+                           value="24h" th:checked="${globalTimeFormat == '24h'}"
+                           onchange="updateGlobalTimeFormat('24h')">
+                    <label class="btn btn-outline-info" for="globalFormat24h">24h</label>
+                    <input type="radio" class="btn-check" name="globalTimeFormatToggle" id="globalFormat12h"
+                           value="12h" th:checked="${globalTimeFormat == '12h'}"
+                           onchange="updateGlobalTimeFormat('12h')">
+                    <label class="btn btn-outline-info" for="globalFormat12h">12h</label>
+                </div>
+            </div>
+        </div>
+        <div class="schedule-status-body p-0">
+            <!-- Scheduler Accordion -->
+            <div class="accordion" id="schedulerAccordion">
+                <!-- Comprehensive Sync Scheduler -->
+                <div class="accordion-item border-0 border-bottom">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#comprehensiveSyncScheduler" aria-expanded="false">
+                            <i class="bi bi-clock-history me-2" style="color: #63b3ed;"></i>
+                            <strong>Comprehensive Sync</strong>
+                            <span th:if="${schedulerSettings != null and schedulerSettings.syncEnabled}"
+                                  class="badge bg-success ms-2">Active</span>
+                            <span th:if="${schedulerSettings == null or !schedulerSettings.syncEnabled}"
+                                  class="badge bg-secondary ms-2">Disabled</span>
+                        </button>
+                    </h2>
+                    <div id="comprehensiveSyncScheduler" class="accordion-collapse collapse"
+                         data-bs-parent="#schedulerAccordion">
+                        <div class="accordion-body">
+                            <p class="text-muted mb-3">
+                                <i class="bi bi-info-circle"></i>
+                                Runs all 7 synchronization phases: Projects, Versions, Documentation Links, Learn sections,
+                                Code Examples, Initializr data, and GitHub documentation.
+                            </p>
+                            <form th:action="@{/settings/scheduler}" method="post" id="schedulerForm">
+                                <div class="row mb-3">
+                                    <!-- Enable/Disable -->
+                                    <div class="col-12 mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox"
+                                                   id="syncEnabled" name="syncEnabled"
+                                                   th:checked="${schedulerSettings != null and schedulerSettings.syncEnabled}">
+                                            <label class="form-check-label" for="syncEnabled">
+                                                <strong>Enable Automatic Sync</strong>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Frequency -->
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">
+                                            <i class="bi bi-calendar-range"></i> Sync Frequency
+                                        </label>
+                                        <select class="form-select" id="syncFrequency" name="frequency"
+                                                onchange="updateSyncFrequencyUI()">
+                                            <option th:each="freq : ${syncFrequencies}"
+                                                    th:value="${freq.name()}"
+                                                    th:text="${freq.displayName}"
+                                                    th:selected="${schedulerSettings != null and schedulerSettings.frequency == freq}">
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Weekday Selection (for WEEKLY) -->
+                                    <div class="col-md-4 mb-3 d-none" id="syncWeekdayContainer">
+                                        <label class="form-label">
+                                            <i class="bi bi-calendar-week"></i> Days of Week
+                                        </label>
+                                        <div class="btn-group-vertical w-100" role="group">
+                                            <th:block th:with="days=${ {'MON','TUE','WED','THU','FRI','SAT','SUN'} },
+                                                              labels=${ {'Mon','Tue','Wed','Thu','Fri','Sat','Sun'} }">
+                                                <div th:each="day,iter : ${days}" class="form-check form-check-inline">
+                                                    <input class="form-check-input sync-weekday-check" type="checkbox"
+                                                           th:id="'syncDay' + ${day}"
+                                                           th:value="${day}"
+                                                           th:checked="${schedulerSettings != null and schedulerSettings.weekdays != null and schedulerSettings.weekdays.contains(day)}">
+                                                    <label class="form-check-label" th:for="'syncDay' + ${day}"
+                                                           th:text="${labels[iter.index]}">Mon</label>
+                                                </div>
+                                            </th:block>
+                                        </div>
+                                        <input type="hidden" id="syncWeekdays" name="weekdays"
+                                               th:value="${schedulerSettings != null ? schedulerSettings.weekdays : 'MON,TUE,WED,THU,FRI,SAT,SUN'}">
+                                    </div>
+
+                                    <!-- Day of Month (for MONTHLY) -->
+                                    <div class="col-md-4 mb-3 d-none" id="syncDayOfMonthContainer">
+                                        <label class="form-label">
+                                            <i class="bi bi-calendar-date"></i> Day of Month
+                                        </label>
+                                        <select class="form-select" id="syncDayOfMonth" name="dayOfMonth">
+                                            <option th:each="day : ${#numbers.sequence(1, 31)}"
+                                                    th:value="${day}"
+                                                    th:text="${day}"
+                                                    th:selected="${schedulerSettings != null and schedulerSettings.dayOfMonth == day}">
+                                            </option>
+                                        </select>
+                                        <small class="form-text text-muted">
+                                            Days 29-31 fallback to last day for shorter months
+                                        </small>
+                                    </div>
+
+                                    <!-- Sync Time -->
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">
+                                            <i class="bi bi-clock"></i> Sync Time
+                                        </label>
+                                        <input type="hidden" id="syncTime" name="syncTime"
+                                               th:value="${schedulerSettings != null ? schedulerSettings.syncTime : '03:00'}">
+                                        <!-- 24h Format -->
+                                        <div id="time24hContainer" class="d-flex gap-2">
+                                            <select class="form-select" id="hour24" style="width: 80px;"></select>
+                                            <span class="align-self-center">:</span>
+                                            <select class="form-select" id="minute24" style="width: 80px;"></select>
+                                        </div>
+                                        <!-- 12h Format -->
+                                        <div id="time12hContainer" class="d-none d-flex gap-2">
+                                            <select class="form-select" id="hour12" style="width: 80px;"></select>
+                                            <span class="align-self-center">:</span>
+                                            <select class="form-select" id="minute12" style="width: 80px;"></select>
+                                            <select class="form-select" id="ampm" style="width: 80px;">
+                                                <option value="AM">AM</option>
+                                                <option value="PM">PM</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Current Status -->
+                                <div th:if="${schedulerSettings != null and schedulerSettings.syncEnabled}"
+                                     class="schedule-status-card mb-3">
+                                    <div class="schedule-status-header">
+                                        <i class="bi bi-clock-history me-2"></i>
+                                        <span>Current Schedule Status</span>
+                                    </div>
+                                    <div class="schedule-status-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6 col-lg-3">
+                                                <div class="status-item">
+                                                    <div class="status-label">
+                                                        <i class="bi bi-calendar-range text-info me-1"></i> Frequency
+                                                    </div>
+                                                    <div class="status-value">
+                                                        <span th:text="${schedulerSettings.frequency.displayName}">Daily</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-lg-3">
+                                                <div class="status-item">
+                                                    <div class="status-label">
+                                                        <i class="bi bi-alarm text-info me-1"></i> Time
+                                                    </div>
+                                                    <div class="status-value">
+                                                        <code class="time-display" id="displayTimeText"
+                                                              th:text="${displayTime}">03:00</code>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-lg-3">
+                                                <div class="status-item">
+                                                    <div class="status-label">
+                                                        <i class="bi bi-clock-history text-warning me-1"></i> Last Run
+                                                    </div>
+                                                    <div class="status-value">
+                                                        <span th:if="${schedulerSettings.lastSyncRun}"
+                                                              th:text="${#temporals.format(schedulerSettings.lastSyncRun, 'MMM dd, HH:mm')}">Never</span>
+                                                        <span class="text-muted-custom"
+                                                              th:unless="${schedulerSettings.lastSyncRun}">Never</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-lg-3">
+                                                <div class="status-item">
+                                                    <div class="status-label">
+                                                        <i class="bi bi-calendar-event text-primary me-1"></i> Next Run
+                                                    </div>
+                                                    <div class="status-value">
+                                                        <span class="text-primary-custom"
+                                                              th:if="${schedulerSettings.nextSyncRun}"
+                                                              th:text="${#temporals.format(schedulerSettings.nextSyncRun, 'MMM dd, HH:mm')}">Calculating...</span>
+                                                        <span class="text-muted-custom"
+                                                              th:unless="${schedulerSettings.nextSyncRun}">Not scheduled</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-calendar-check"></i> Save Schedule
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Language Evolution Scheduler -->
+                <div class="accordion-item border-0" th:if="${languageEvolutionEnabled}">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#languageEvolutionScheduler" aria-expanded="false">
+                            <i class="bi bi-braces me-2" style="color: #fbbf24;"></i>
+                            <strong>Language Evolution</strong>
+                            <span th:if="${languageSchedulerSettings != null and languageSchedulerSettings.syncEnabled}"
+                                  class="badge bg-success ms-2">Active</span>
+                            <span th:if="${languageSchedulerSettings == null or !languageSchedulerSettings.syncEnabled}"
+                                  class="badge bg-secondary ms-2">Disabled</span>
+                        </button>
+                    </h2>
+                    <div id="languageEvolutionScheduler" class="accordion-collapse collapse"
+                         data-bs-parent="#schedulerAccordion">
+                        <div class="accordion-body">
+                            <p class="text-muted mb-3">
+                                <i class="bi bi-info-circle"></i>
+                                Fetches Java JEP data and Kotlin KEP data from official sources.
+                                Daily sync is recommended for development environments.
+                            </p>
+                            <form th:action="@{/settings/language-scheduler}" method="post" id="languageSchedulerForm">
+                                <div class="row mb-3">
+                                    <!-- Enable/Disable -->
+                                    <div class="col-12 mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox"
+                                                   id="languageSyncEnabled" name="syncEnabled"
+                                                   th:checked="${languageSchedulerSettings != null and languageSchedulerSettings.syncEnabled}">
+                                            <label class="form-check-label" for="languageSyncEnabled">
+                                                <strong>Enable Language Sync</strong>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Frequency -->
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">
+                                            <i class="bi bi-calendar-range"></i> Sync Frequency
+                                        </label>
+                                        <select class="form-select" id="languageFrequency" name="frequency"
+                                                onchange="updateLanguageFrequencyUI()">
+                                            <option th:each="freq : ${syncFrequencies}"
+                                                    th:value="${freq.name()}"
+                                                    th:text="${freq.displayName}"
+                                                    th:selected="${languageSchedulerSettings != null and languageSchedulerSettings.frequency == freq}">
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Weekday Selection (for WEEKLY) -->
+                                    <div class="col-md-4 mb-3 d-none" id="languageWeekdayContainer">
+                                        <label class="form-label">
+                                            <i class="bi bi-calendar-week"></i> Days of Week
+                                        </label>
+                                        <div class="btn-group-vertical w-100" role="group">
+                                            <th:block th:with="days=${ {'MON','TUE','WED','THU','FRI','SAT','SUN'} },
+                                                              labels=${ {'Mon','Tue','Wed','Thu','Fri','Sat','Sun'} }">
+                                                <div th:each="day,iter : ${days}" class="form-check form-check-inline">
+                                                    <input class="form-check-input language-weekday-check" type="checkbox"
+                                                           th:id="'langDay' + ${day}"
+                                                           th:value="${day}"
+                                                           th:checked="${languageSchedulerSettings != null and languageSchedulerSettings.weekdays != null and languageSchedulerSettings.weekdays.contains(day)}">
+                                                    <label class="form-check-label" th:for="'langDay' + ${day}"
+                                                           th:text="${labels[iter.index]}">Mon</label>
+                                                </div>
+                                            </th:block>
+                                        </div>
+                                        <input type="hidden" id="languageWeekdays" name="weekdays"
+                                               th:value="${languageSchedulerSettings != null ? languageSchedulerSettings.weekdays : 'MON,TUE,WED,THU,FRI,SAT,SUN'}">
+                                    </div>
+
+                                    <!-- Day of Month (for MONTHLY) -->
+                                    <div class="col-md-4 mb-3 d-none" id="languageDayOfMonthContainer">
+                                        <label class="form-label">
+                                            <i class="bi bi-calendar-date"></i> Day of Month
+                                        </label>
+                                        <select class="form-select" id="languageDayOfMonth" name="dayOfMonth">
+                                            <option th:each="day : ${#numbers.sequence(1, 31)}"
+                                                    th:value="${day}"
+                                                    th:text="${day}"
+                                                    th:selected="${languageSchedulerSettings != null and languageSchedulerSettings.dayOfMonth == day}">
+                                            </option>
+                                        </select>
+                                        <small class="form-text text-muted">
+                                            Days 29-31 fallback to last day for shorter months
+                                        </small>
+                                    </div>
+
+                                    <!-- Sync Time -->
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">
+                                            <i class="bi bi-clock"></i> Sync Time
+                                        </label>
+                                        <input type="hidden" id="languageSyncTime" name="syncTime"
+                                               th:value="${languageSchedulerSettings != null ? languageSchedulerSettings.syncTime : '04:00'}">
+                                        <!-- 24h Format -->
+                                        <div id="langTime24hContainer" class="d-flex gap-2">
+                                            <select class="form-select" id="langHour24" style="width: 80px;"></select>
+                                            <span class="align-self-center">:</span>
+                                            <select class="form-select" id="langMinute24" style="width: 80px;"></select>
+                                        </div>
+                                        <!-- 12h Format -->
+                                        <div id="langTime12hContainer" class="d-none d-flex gap-2">
+                                            <select class="form-select" id="langHour12" style="width: 80px;"></select>
+                                            <span class="align-self-center">:</span>
+                                            <select class="form-select" id="langMinute12" style="width: 80px;"></select>
+                                            <select class="form-select" id="langAmpm" style="width: 80px;">
+                                                <option value="AM">AM</option>
+                                                <option value="PM">PM</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Current Status -->
+                                <div th:if="${languageSchedulerSettings != null and languageSchedulerSettings.syncEnabled}"
+                                     class="schedule-status-card mb-3">
+                                    <div class="schedule-status-header">
+                                        <i class="bi bi-braces me-2" style="color: #fbbf24;"></i>
+                                        <span>Language Sync Status</span>
+                                    </div>
+                                    <div class="schedule-status-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6 col-lg-3">
+                                                <div class="status-item">
+                                                    <div class="status-label">
+                                                        <i class="bi bi-calendar-range text-info me-1"></i> Frequency
+                                                    </div>
+                                                    <div class="status-value">
+                                                        <span th:text="${languageSchedulerSettings.frequency.displayName}">Daily</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-lg-3">
+                                                <div class="status-item">
+                                                    <div class="status-label">
+                                                        <i class="bi bi-alarm text-info me-1"></i> Time
+                                                    </div>
+                                                    <div class="status-value">
+                                                        <code class="time-display" id="languageDisplayTimeText"
+                                                              th:text="${languageDisplayTime}">04:00</code>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-lg-3">
+                                                <div class="status-item">
+                                                    <div class="status-label">
+                                                        <i class="bi bi-clock-history text-warning me-1"></i> Last Run
+                                                    </div>
+                                                    <div class="status-value">
+                                                        <span th:if="${languageSchedulerSettings.lastSyncRun}"
+                                                              th:text="${#temporals.format(languageSchedulerSettings.lastSyncRun, 'MMM dd, HH:mm')}">Never</span>
+                                                        <span class="text-muted-custom"
+                                                              th:unless="${languageSchedulerSettings.lastSyncRun}">Never</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-lg-3">
+                                                <div class="status-item">
+                                                    <div class="status-label">
+                                                        <i class="bi bi-calendar-event text-primary me-1"></i> Next Run
+                                                    </div>
+                                                    <div class="status-value">
+                                                        <span class="text-primary-custom"
+                                                              th:if="${languageSchedulerSettings.nextSyncRun}"
+                                                              th:text="${#temporals.format(languageSchedulerSettings.nextSyncRun, 'MMM dd, HH:mm')}">Calculating...</span>
+                                                        <span class="text-muted-custom"
+                                                              th:unless="${languageSchedulerSettings.nextSyncRun}">Not scheduled</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-calendar-check"></i> Save Schedule
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                </div><!-- End accordion -->
+        </div><!-- End schedule-status-body -->
+    </div><!-- End Schedulers section -->
+
+    <!-- API Key Management -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0">
+                <i class="bi bi-key-fill text-warning"></i> API Key Management
+            </h5>
+            <small class="text-muted">Manage API keys for MCP endpoint authentication</small>
+        </div>
+        <div class="card-body">
+            <!-- Stats -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="stat-box bg-primary bg-opacity-10 p-3 rounded">
+                        <div class="text-primary fw-bold">Total Keys</div>
+                        <div class="h4 mb-0" th:text="${apiKeyStats.total}">0</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-box bg-success bg-opacity-10 p-3 rounded">
+                        <div class="text-success fw-bold">Active Keys</div>
+                        <div class="h4 mb-0" th:text="${apiKeyStats.active}">0</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-box bg-secondary bg-opacity-10 p-3 rounded">
+                        <div class="text-secondary fw-bold">Inactive Keys</div>
+                        <div class="h4 mb-0" th:text="${apiKeyStats.inactive}">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create New Key Button -->
+            <div class="mb-3">
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createApiKeyModal">
+                    <i class="bi bi-plus-circle"></i> Create New API Key
+                </button>
+            </div>
+
+            <!-- API Keys Table -->
+            <div th:if="${#lists.isEmpty(apiKeys)}" class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No API keys created yet. Create your first API key to access MCP endpoints.
+            </div>
+
+            <div th:unless="${#lists.isEmpty(apiKeys)}" class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Created</th>
+                        <th>Created By</th>
+                        <th>Last Used</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="key : ${apiKeys}">
+                        <td>
+                            <strong th:text="${key.name}">API Key Name</strong>
+                            <br/>
+                            <small class="text-muted" th:if="${key.description}" th:text="${key.description}"></small>
+                        </td>
+                        <td>
+                            <small th:text="${#temporals.format(key.createdAt, 'MMM dd, yyyy HH:mm')}">Jan 01, 2025 12:00</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-info" th:text="${key.createdBy}">admin</span>
+                        </td>
+                        <td>
+                            <small th:if="${key.lastUsedAt}" th:text="${#temporals.format(key.lastUsedAt, 'MMM dd, yyyy HH:mm')}">Jan 01, 2025 12:00</small>
+                            <small th:unless="${key.lastUsedAt}" class="text-muted fst-italic">Never</small>
+                        </td>
+                        <td>
+                            <span th:if="${key.isActive}" class="badge bg-success">
+                                <i class="bi bi-check-circle"></i> Active
+                            </span>
+                            <span th:unless="${key.isActive}" class="badge bg-secondary">
+                                <i class="bi bi-x-circle"></i> Inactive
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button th:if="${key.isActive}" type="button" class="btn btn-outline-warning"
+                                        th:data-key-id="${key.id}"
+                                        onclick="deactivateApiKey(this.getAttribute('data-key-id'))"
+                                        title="Deactivate">
+                                    <i class="bi bi-pause-circle"></i>
+                                </button>
+                                <button th:unless="${key.isActive}" type="button" class="btn btn-outline-success"
+                                        th:data-key-id="${key.id}"
+                                        onclick="activateApiKey(this.getAttribute('data-key-id'))"
+                                        title="Activate">
+                                    <i class="bi bi-play-circle"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-danger"
+                                        th:data-key-id="${key.id}"
+                                        th:data-key-name="${key.name}"
+                                        onclick="deleteApiKey(this.getAttribute('data-key-id'), this.getAttribute('data-key-name'))"
+                                        title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="alert alert-warning mt-3 mb-0">
+                <i class="bi bi-shield-exclamation"></i>
+                <strong>Security Note:</strong> API keys are stored securely using hashing.
+                The plain text key is shown only once during creation. Keep your API keys secure and rotate them regularly.
+            </div>
+        </div>
+    </div>
+
+    <!-- Spring Boot Initializr Configuration -->
+    <div class="card border-0 shadow-sm mb-4" th:if="${initializrEnabled}">
+        <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0">
+                <i class="bi bi-box-seam" style="color: #6ee7b7;"></i> Spring Boot Initializr
+            </h5>
+            <small class="text-muted">Configure Spring Initializr integration for project generation</small>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-muted">
+                        <i class="bi bi-toggle-on"></i> Feature Status
+                    </label>
+                    <div>
+                        <span class="badge bg-success">
+                            <i class="bi bi-check-circle"></i> Enabled
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-muted">
+                        <i class="bi bi-link-45deg"></i> Initializr URL
+                    </label>
+                    <div>
+                        <a th:href="${initializrBaseUrl}" target="_blank" class="text-info">
+                            <code th:text="${initializrBaseUrl}">https://start.spring.io</code>
+                            <i class="bi bi-box-arrow-up-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-muted">
+                        <i class="bi bi-speedometer2"></i> Quick Actions
+                    </label>
+                    <div>
+                        <a th:href="@{/initializr}" class="btn btn-sm btn-outline-success me-2">
+                            <i class="bi bi-box-seam"></i> Open Initializr
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-muted">
+                        <i class="bi bi-tools"></i> MCP Tools
+                    </label>
+                    <div class="small">
+                        <code>initializrGetDependency</code>,
+                        <code>initializrSearchDependencies</code>,
+                        <code>initializrCheckCompatibility</code>,
+                        <code>initializrGetBootVersions</code>,
+                        <code>initializrGetDependencyCategories</code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info mt-3 mb-0">
+                <i class="bi bi-info-circle"></i>
+                <strong>Configuration:</strong> Initializr settings are managed via
+                <code>application.yml</code> under <code>mcp.features.initializr</code>.
+                Modify <code>base-url</code> to point to a self-hosted Initializr instance if needed.
+            </div>
+        </div>
+    </div>
+
+    <!-- System Information -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0">
+                <i class="bi bi-info-square"></i> System Information
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-muted">Application Version</label>
+                    <div>
+                        <code th:text="${appVersion}">1.1.0</code>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-muted">Spring Boot Version</label>
+                    <div>
+                        <code th:text="${springBootVersion}">3.5.8</code>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-muted">Java Version</label>
+                    <div>
+                        <code th:text="${javaVersion}">25</code>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-muted">Database</label>
+                    <div>
+                        <code>PostgreSQL 18</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create API Key Modal -->
+    <div class="modal fade" id="createApiKeyModal" tabindex="-1" aria-labelledby="createApiKeyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createApiKeyModalLabel">
+                        <i class="bi bi-key-fill text-warning"></i> Create New API Key
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createApiKeyForm">
+                        <div class="mb-3">
+                            <label for="apiKeyName" class="form-label">
+                                Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="apiKeyName" name="name"
+                                   placeholder="e.g., Production MCP Client" required minlength="3" maxlength="255">
+                            <small class="form-text text-muted">Minimum 3 characters. Unique identifier for this key.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="apiKeyDescription" class="form-label">Description (Optional)</label>
+                            <textarea class="form-control" id="apiKeyDescription" name="description"
+                                      rows="2" placeholder="Purpose of this API key..."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Generated Key (Preview)</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control font-monospace" id="generatedKeyPreview"
+                                       readonly placeholder="Click 'Generate Key' button">
+                                <button class="btn btn-outline-secondary" type="button" id="generateKeyBtn">
+                                    <i class="bi bi-arrow-clockwise"></i> Generate Key
+                                </button>
+                            </div>
+                            <small class="form-text text-muted">
+                                <i class="bi bi-info-circle"></i>
+                                A secure random key will be generated. You can preview it here before creating.
+                            </small>
+                        </div>
+
+                        <div class="alert alert-warning mb-0">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Important:</strong> The API key will be shown only once after creation. Make sure to copy and store it securely.
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" id="createApiKeyBtn">
+                        <i class="bi bi-plus-circle"></i> Create API Key
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Key Created Modal (Show Key One Time) -->
+    <div class="modal fade" id="apiKeyCreatedModal" tabindex="-1" aria-labelledby="apiKeyCreatedModalLabel" aria-hidden="true"
+         data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="apiKeyCreatedModalLabel">
+                        <i class="bi bi-check-circle"></i> API Key Created Successfully
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <strong>IMPORTANT:</strong> This is the only time you will see this key. Copy it now and store it securely!
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">API Key Name:</label>
+                        <div id="createdKeyName" class="text-primary"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Your API Key:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control font-monospace" id="createdKeyValue"
+                                   readonly style="font-size: 0.9rem;">
+                            <button class="btn btn-primary" type="button" id="copyKeyBtn">
+                                <i class="bi bi-clipboard"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mb-0">
+                        <strong>How to use:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Add to <code>X-API-Key</code> header: <code>X-API-Key: your_key_here</code></li>
+                            <li>Or use <code>Authorization</code> header: <code>Authorization: Bearer your_key_here</code></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick="location.reload()">
+                        <i class="bi bi-check-circle"></i> I've Copied the Key
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deactivate API Key Confirmation Modal -->
+    <div class="modal fade" id="deactivateApiKeyModal" tabindex="-1" aria-labelledby="deactivateApiKeyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title" id="deactivateApiKeyModalLabel">
+                        <i class="bi bi-pause-circle-fill"></i> Deactivate API Key
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning mb-3">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <strong>Warning:</strong> This action will prevent the API key from being used for authentication.
+                    </div>
+                    <p class="mb-2">Are you sure you want to deactivate this API key?</p>
+                    <p class="text-muted mb-0">
+                        <small>You can reactivate it later if needed.</small>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-warning" id="confirmDeactivateBtn">
+                        <i class="bi bi-pause-circle"></i> Deactivate Key
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete API Key Confirmation Modal -->
+    <div class="modal fade" id="deleteApiKeyModal" tabindex="-1" aria-labelledby="deleteApiKeyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteApiKeyModalLabel">
+                        <i class="bi bi-trash-fill"></i> Delete API Key
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger mb-3">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <strong>Danger!</strong> This action cannot be undone.
+                    </div>
+                    <p class="mb-2">Are you sure you want to <strong>permanently delete</strong> the API key:</p>
+                    <div class="bg-dark p-3 rounded mb-3">
+                        <code class="text-warning" id="deleteKeyNameDisplay"></code>
+                    </div>
+                    <p class="text-danger mb-0">
+                        <i class="bi bi-shield-exclamation"></i>
+                        <strong>All applications using this key will immediately lose access!</strong>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="bi bi-trash"></i> Delete Permanently
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page-specific JavaScript -->
+    <script>
+        // Get CSRF token
+        function getCsrfToken() {
+            const csrfInput = document.querySelector('input[name="_csrf"]');
+            return csrfInput ? csrfInput.value : '';
+        }
+
+        // Initialize time dropdowns
+        function initializeTimeDropdowns() {
+            const syncTimeValue = document.getElementById('syncTime').value; // Format: "HH:mm"
+            const [hours24, minutes] = syncTimeValue.split(':').map(Number);
+
+            // Populate 24h hour dropdown (0-23)
+            const hour24Select = document.getElementById('hour24');
+            for (let i = 0; i < 24; i++) {
+                const option = document.createElement('option');
+                option.value = String(i).padStart(2, '0');
+                option.textContent = String(i).padStart(2, '0');
+                if (i === hours24) option.selected = true;
+                hour24Select.appendChild(option);
+            }
+
+            // Populate 24h minute dropdown (0-59)
+            const minute24Select = document.getElementById('minute24');
+            for (let i = 0; i < 60; i++) {
+                const option = document.createElement('option');
+                option.value = String(i).padStart(2, '0');
+                option.textContent = String(i).padStart(2, '0');
+                if (i === minutes) option.selected = true;
+                minute24Select.appendChild(option);
+            }
+
+            // Populate 12h hour dropdown (1-12)
+            const hour12Select = document.getElementById('hour12');
+            for (let i = 1; i <= 12; i++) {
+                const option = document.createElement('option');
+                option.value = String(i).padStart(2, '0');
+                option.textContent = String(i).padStart(2, '0');
+                hour12Select.appendChild(option);
+            }
+
+            // Populate 12h minute dropdown (0-59)
+            const minute12Select = document.getElementById('minute12');
+            for (let i = 0; i < 60; i++) {
+                const option = document.createElement('option');
+                option.value = String(i).padStart(2, '0');
+                option.textContent = String(i).padStart(2, '0');
+                minute12Select.appendChild(option);
+            }
+
+            // Convert 24h to 12h and set values
+            const isPM = hours24 >= 12;
+            const hours12 = hours24 === 0 ? 12 : (hours24 > 12 ? hours24 - 12 : hours24);
+            hour12Select.value = String(hours12).padStart(2, '0');
+            minute12Select.value = String(minutes).padStart(2, '0');
+            document.getElementById('ampm').value = isPM ? 'PM' : 'AM';
+
+            // Add change listeners
+            [hour24Select, minute24Select, hour12Select, minute12Select, document.getElementById('ampm')].forEach(select => {
+                select.addEventListener('change', updateHiddenTimeInput);
+            });
+        }
+
+        // Update hidden syncTime input when dropdowns change
+        function updateHiddenTimeInput() {
+            const currentFormat = document.querySelector('input[name="globalTimeFormatToggle"]:checked').value;
+            let hours24, minutes;
+
+            if (currentFormat === '24h') {
+                hours24 = document.getElementById('hour24').value;
+                minutes = document.getElementById('minute24').value;
+            } else {
+                const hours12 = parseInt(document.getElementById('hour12').value);
+                const ampm = document.getElementById('ampm').value;
+                minutes = document.getElementById('minute12').value;
+
+                // Convert 12h to 24h
+                if (ampm === 'AM') {
+                    hours24 = hours12 === 12 ? '00' : String(hours12).padStart(2, '0');
+                } else {
+                    hours24 = hours12 === 12 ? '12' : String(hours12 + 12).padStart(2, '0');
+                }
+            }
+
+            document.getElementById('syncTime').value = `${hours24}:${minutes}`;
+        }
+
+        // Toggle between 12h and 24h time pickers
+        function toggleTimePickers(format) {
+            const time24Container = document.getElementById('time24hContainer');
+            const time12Container = document.getElementById('time12hContainer');
+
+            if (format === '24h') {
+                time24Container.classList.remove('d-none');
+                time12Container.classList.add('d-none');
+            } else {
+                time24Container.classList.add('d-none');
+                time12Container.classList.remove('d-none');
+            }
+
+            // Sync the values between pickers
+            updateHiddenTimeInput();
+        }
+
+        // Update global time format (AJAX) - applies to all schedulers
+        async function updateGlobalTimeFormat(format) {
+            try {
+                const formData = new FormData();
+                formData.append('timeFormat', format);
+
+                const csrfToken = getCsrfToken();
+                if (csrfToken) {
+                    formData.append('_csrf', csrfToken);
+                }
+
+                const response = await fetch('/settings/global/time-format', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update display times for all schedulers
+                    const displayTimeElement = document.getElementById('displayTimeText');
+                    if (displayTimeElement && data.displayTime) {
+                        displayTimeElement.textContent = data.displayTime;
+                    }
+
+                    const languageDisplayTimeElement = document.getElementById('languageDisplayTimeText');
+                    if (languageDisplayTimeElement && data.languageDisplayTime) {
+                        languageDisplayTimeElement.textContent = data.languageDisplayTime;
+                    }
+
+                    // Toggle time pickers for both schedulers
+                    toggleTimePickers(format);
+                    toggleLanguageTimePickers(format);
+
+                    console.log('Global time format updated to:', format);
+                } else {
+                    console.error('Server returned error:', data.error);
+                    alert('Failed to update time format: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error updating global time format:', error);
+                alert('Failed to update time format: ' + error.message);
+            }
+        }
+
+        // Legacy function - now delegates to global
+        async function updateTimeFormat(format) {
+            return updateGlobalTimeFormat(format);
+        }
+
+        // Update UI based on sync frequency selection
+        function updateSyncFrequencyUI() {
+            const frequency = document.getElementById('syncFrequency').value;
+            const weekdayContainer = document.getElementById('syncWeekdayContainer');
+            const dayOfMonthContainer = document.getElementById('syncDayOfMonthContainer');
+
+            if (frequency === 'DAILY') {
+                weekdayContainer.classList.add('d-none');
+                dayOfMonthContainer.classList.add('d-none');
+            } else if (frequency === 'WEEKLY') {
+                weekdayContainer.classList.remove('d-none');
+                dayOfMonthContainer.classList.add('d-none');
+            } else if (frequency === 'MONTHLY') {
+                weekdayContainer.classList.add('d-none');
+                dayOfMonthContainer.classList.remove('d-none');
+            }
+        }
+
+        // Update weekdays hidden input for sync scheduler
+        function updateSyncWeekdaysInput() {
+            const checked = Array.from(document.querySelectorAll('.sync-weekday-check:checked'))
+                .map(cb => cb.value);
+            document.getElementById('syncWeekdays').value = checked.join(',');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTimeDropdowns();
+
+            // Set initial time picker visibility using global time format
+            const globalFormatEl = document.querySelector('input[name="globalTimeFormatToggle"]:checked');
+            if (globalFormatEl) {
+                toggleTimePickers(globalFormatEl.value);
+            }
+
+            // Set initial sync frequency UI
+            const syncFrequencyEl = document.getElementById('syncFrequency');
+            if (syncFrequencyEl) {
+                updateSyncFrequencyUI();
+
+                // Add weekday checkbox listeners
+                document.querySelectorAll('.sync-weekday-check').forEach(checkbox => {
+                    checkbox.addEventListener('change', updateSyncWeekdaysInput);
+                });
+            }
+        });
+
+        // Generate API key preview
+        document.getElementById('generateKeyBtn').addEventListener('click', async function() {
+            try {
+                const response = await fetch('/settings/api-keys/generate');
+                const data = await response.json();
+                document.getElementById('generatedKeyPreview').value = data.key;
+            } catch (error) {
+                console.error('Error generating key:', error);
+                alert('Failed to generate key preview');
+            }
+        });
+
+        // Create API key
+        document.getElementById('createApiKeyBtn').addEventListener('click', async function() {
+            const name = document.getElementById('apiKeyName').value.trim();
+            const description = document.getElementById('apiKeyDescription').value.trim();
+
+            if (!name || name.length < 3) {
+                alert('Please enter a name (minimum 3 characters)');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('name', name);
+                if (description) {
+                    formData.append('description', description);
+                }
+
+                const response = await fetch('/settings/api-keys/create', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Hide create modal
+                    const createModal = bootstrap.Modal.getInstance(document.getElementById('createApiKeyModal'));
+                    createModal.hide();
+
+                    // Show created key modal with the plain text key
+                    document.getElementById('createdKeyName').textContent = data.apiKey.name;
+                    document.getElementById('createdKeyValue').value = data.plainTextKey;
+
+                    const createdModal = new bootstrap.Modal(document.getElementById('apiKeyCreatedModal'));
+                    createdModal.show();
+
+                    // Reset form
+                    document.getElementById('createApiKeyForm').reset();
+                    document.getElementById('generatedKeyPreview').value = '';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error creating API key:', error);
+                alert('Failed to create API key');
+            }
+        });
+
+        // Copy API key to clipboard
+        document.getElementById('copyKeyBtn').addEventListener('click', function() {
+            const keyInput = document.getElementById('createdKeyValue');
+            keyInput.select();
+            document.execCommand('copy');
+
+            // Change button text temporarily
+            const btn = this;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-success');
+
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-primary');
+            }, 2000);
+        });
+
+        // Deactivate API key - Show modal for confirmation
+        let currentDeactivateId = null;
+
+        function deactivateApiKey(id) {
+            currentDeactivateId = id;
+            const modal = new bootstrap.Modal(document.getElementById('deactivateApiKeyModal'));
+            modal.show();
+        }
+
+        // Confirm deactivate button handler
+        document.getElementById('confirmDeactivateBtn').addEventListener('click', async function() {
+            if (!currentDeactivateId) return;
+
+            try {
+                const response = await fetch(`/settings/api-keys/${currentDeactivateId}/deactivate`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('deactivateApiKeyModal')).hide();
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error deactivating API key:', error);
+                alert('Failed to deactivate API key');
+            }
+        });
+
+        // Activate API key
+        async function activateApiKey(id) {
+            try {
+                const response = await fetch(`/settings/api-keys/${id}/activate`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error activating API key:', error);
+                alert('Failed to activate API key');
+            }
+        }
+
+        // Delete API key - Show modal for confirmation
+        let currentDeleteId = null;
+
+        function deleteApiKey(id, name) {
+            currentDeleteId = id;
+            document.getElementById('deleteKeyNameDisplay').textContent = name;
+            const modal = new bootstrap.Modal(document.getElementById('deleteApiKeyModal'));
+            modal.show();
+        }
+
+        // Confirm delete button handler
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+            if (!currentDeleteId) return;
+
+            try {
+                const response = await fetch(`/settings/api-keys/${currentDeleteId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('deleteApiKeyModal')).hide();
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error deleting API key:', error);
+                alert('Failed to delete API key');
+            }
+        });
+
+        // ==================== Language Scheduler Functions ====================
+
+        // Initialize language scheduler time dropdowns
+        function initializeLanguageTimeDropdowns() {
+            const langSyncTimeEl = document.getElementById('languageSyncTime');
+            if (!langSyncTimeEl) return; // Language scheduler not enabled
+
+            const syncTimeValue = langSyncTimeEl.value || '04:00';
+            const [hours24, minutes] = syncTimeValue.split(':').map(Number);
+
+            // Populate 24h hour dropdown
+            const langHour24Select = document.getElementById('langHour24');
+            langHour24Select.innerHTML = '';
+            for (let i = 0; i < 24; i++) {
+                const option = document.createElement('option');
+                option.value = String(i).padStart(2, '0');
+                option.textContent = String(i).padStart(2, '0');
+                if (i === hours24) option.selected = true;
+                langHour24Select.appendChild(option);
+            }
+
+            // Populate 24h minute dropdown
+            const langMinute24Select = document.getElementById('langMinute24');
+            langMinute24Select.innerHTML = '';
+            for (let i = 0; i < 60; i++) {
+                const option = document.createElement('option');
+                option.value = String(i).padStart(2, '0');
+                option.textContent = String(i).padStart(2, '0');
+                if (i === minutes) option.selected = true;
+                langMinute24Select.appendChild(option);
+            }
+
+            // Populate 12h hour dropdown
+            const langHour12Select = document.getElementById('langHour12');
+            langHour12Select.innerHTML = '';
+            for (let i = 1; i <= 12; i++) {
+                const option = document.createElement('option');
+                option.value = String(i).padStart(2, '0');
+                option.textContent = String(i).padStart(2, '0');
+                langHour12Select.appendChild(option);
+            }
+
+            // Populate 12h minute dropdown
+            const langMinute12Select = document.getElementById('langMinute12');
+            langMinute12Select.innerHTML = '';
+            for (let i = 0; i < 60; i++) {
+                const option = document.createElement('option');
+                option.value = String(i).padStart(2, '0');
+                option.textContent = String(i).padStart(2, '0');
+                langMinute12Select.appendChild(option);
+            }
+
+            // Convert and set 12h values
+            const isPM = hours24 >= 12;
+            const hours12 = hours24 === 0 ? 12 : (hours24 > 12 ? hours24 - 12 : hours24);
+            langHour12Select.value = String(hours12).padStart(2, '0');
+            langMinute12Select.value = String(minutes).padStart(2, '0');
+            document.getElementById('langAmpm').value = isPM ? 'PM' : 'AM';
+
+            // Add change listeners
+            [langHour24Select, langMinute24Select, langHour12Select, langMinute12Select, document.getElementById('langAmpm')].forEach(select => {
+                select.addEventListener('change', updateLanguageHiddenTimeInput);
+            });
+
+            // Add weekday checkbox listeners
+            document.querySelectorAll('.language-weekday-check').forEach(checkbox => {
+                checkbox.addEventListener('change', updateLanguageWeekdaysInput);
+            });
+        }
+
+        // Update hidden languageSyncTime input
+        function updateLanguageHiddenTimeInput() {
+            const currentFormatEl = document.querySelector('input[name="globalTimeFormatToggle"]:checked');
+            if (!currentFormatEl) return;
+            const currentFormat = currentFormatEl.value;
+            let hours24, minutes;
+
+            if (currentFormat === '24h') {
+                hours24 = document.getElementById('langHour24').value;
+                minutes = document.getElementById('langMinute24').value;
+            } else {
+                const hours12 = parseInt(document.getElementById('langHour12').value);
+                const ampm = document.getElementById('langAmpm').value;
+                minutes = document.getElementById('langMinute12').value;
+
+                if (ampm === 'AM') {
+                    hours24 = hours12 === 12 ? '00' : String(hours12).padStart(2, '0');
+                } else {
+                    hours24 = hours12 === 12 ? '12' : String(hours12 + 12).padStart(2, '0');
+                }
+            }
+
+            document.getElementById('languageSyncTime').value = `${hours24}:${minutes}`;
+        }
+
+        // Update weekdays hidden input
+        function updateLanguageWeekdaysInput() {
+            const checked = Array.from(document.querySelectorAll('.language-weekday-check:checked'))
+                .map(cb => cb.value);
+            document.getElementById('languageWeekdays').value = checked.join(',');
+        }
+
+        // Toggle language time pickers
+        function toggleLanguageTimePickers(format) {
+            const time24Container = document.getElementById('langTime24hContainer');
+            const time12Container = document.getElementById('langTime12hContainer');
+            if (!time24Container || !time12Container) return;
+
+            if (format === '24h') {
+                time24Container.classList.remove('d-none');
+                time12Container.classList.add('d-none');
+            } else {
+                time24Container.classList.add('d-none');
+                time12Container.classList.remove('d-none');
+            }
+            updateLanguageHiddenTimeInput();
+        }
+
+        // Update language time format (AJAX)
+        async function updateLanguageTimeFormat(format) {
+            try {
+                const formData = new FormData();
+                formData.append('timeFormat', format);
+
+                const csrfToken = getCsrfToken();
+                if (csrfToken) {
+                    formData.append('_csrf', csrfToken);
+                }
+
+                const response = await fetch('/settings/language-scheduler/time-format', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    toggleLanguageTimePickers(format);
+                }
+            } catch (error) {
+                console.error('Error updating language time format:', error);
+            }
+        }
+
+        // Update UI based on frequency selection
+        function updateLanguageFrequencyUI() {
+            const frequency = document.getElementById('languageFrequency').value;
+            const weekdayContainer = document.getElementById('languageWeekdayContainer');
+            const dayOfMonthContainer = document.getElementById('languageDayOfMonthContainer');
+
+            if (frequency === 'DAILY') {
+                weekdayContainer.classList.add('d-none');
+                dayOfMonthContainer.classList.add('d-none');
+            } else if (frequency === 'WEEKLY') {
+                weekdayContainer.classList.remove('d-none');
+                dayOfMonthContainer.classList.add('d-none');
+            } else if (frequency === 'MONTHLY') {
+                weekdayContainer.classList.add('d-none');
+                dayOfMonthContainer.classList.remove('d-none');
+            }
+        }
+
+        // Initialize language scheduler on page load
+        (function() {
+            document.addEventListener('DOMContentLoaded', function() {
+                // Initialize language scheduler if present
+                if (document.getElementById('languageSyncTime')) {
+                    initializeLanguageTimeDropdowns();
+
+                    // Set initial time picker visibility using global time format
+                    const globalFormatEl = document.querySelector('input[name="globalTimeFormatToggle"]:checked');
+                    if (globalFormatEl) {
+                        toggleLanguageTimePickers(globalFormatEl.value);
+                    }
+
+                    // Set initial frequency UI
+                    updateLanguageFrequencyUI();
+                }
+            });
+        })();
+
+        // ==================== Javadoc Sync Version Filter (Release 1.4.3) ====================
+
+        // Update Javadoc sync filter settings (AJAX)
+        async function updateJavadocFilter() {
+            const syncSnapshot = document.getElementById('javadocSyncSnapshot').checked;
+            const syncRc = document.getElementById('javadocSyncRc').checked;
+            const syncMilestone = document.getElementById('javadocSyncMilestone').checked;
+
+            try {
+                const formData = new FormData();
+                formData.append('syncSnapshot', syncSnapshot);
+                formData.append('syncRc', syncRc);
+                formData.append('syncMilestone', syncMilestone);
+
+                const csrfToken = getCsrfToken();
+                if (csrfToken) {
+                    formData.append('_csrf', csrfToken);
+                }
+
+                const response = await fetch('/settings/javadoc-filter', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Show success message
+                    const statusEl = document.getElementById('javadocFilterStatus');
+                    const messageEl = document.getElementById('javadocFilterMessage');
+
+                    const enabledFilters = [];
+                    if (syncSnapshot) enabledFilters.push('SNAPSHOT');
+                    if (syncRc) enabledFilters.push('RC');
+                    if (syncMilestone) enabledFilters.push('Milestone');
+
+                    if (enabledFilters.length > 0) {
+                        messageEl.textContent = `Filter updated! Syncing: GA + ${enabledFilters.join(', ')} versions`;
+                    } else {
+                        messageEl.textContent = 'Filter updated! Syncing only GA/CURRENT versions';
+                    }
+
+                    statusEl.style.display = 'block';
+                    statusEl.classList.remove('alert-danger');
+                    statusEl.classList.add('alert-success');
+
+                    // Hide after 3 seconds
+                    setTimeout(() => {
+                        statusEl.style.display = 'none';
+                    }, 3000);
+
+                    console.log('Javadoc filter updated:', data);
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                console.error('Error updating Javadoc filter:', error);
+
+                // Show error message
+                const statusEl = document.getElementById('javadocFilterStatus');
+                const messageEl = document.getElementById('javadocFilterMessage');
+
+                messageEl.textContent = 'Failed to update filter: ' + error.message;
+                statusEl.style.display = 'block';
+                statusEl.classList.remove('alert-success');
+                statusEl.classList.add('alert-danger');
+
+                // Don't auto-hide errors
+            }
+        }
+    </script>
+</div>
+</body>
+</html>

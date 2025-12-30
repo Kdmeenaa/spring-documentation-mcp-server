@@ -1,0 +1,461 @@
+# Application Info
+info:
+  app:
+    name: Spring Boot Documentation MCP Server
+    version: 1.5.4
+    description: MCP Server providing comprehensive access to Spring ecosystem documentation
+  spring-boot:
+    version: 3.5.9
+
+spring:
+  application:
+    name: spring-boot-documentation-mcp-server
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:spring_mcp}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+        enable_lazy_load_no_trans: false
+    open-in-view: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    clean-disabled: true
+    placeholder-replacement: false
+
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+
+  # Caffeine Cache Configuration (see CacheConfig.java for details)
+  cache:
+    type: caffeine
+
+  web:
+    resources:
+      cache:
+        period: 0
+
+  security:
+    user:
+      name: ${ADMIN_USER:admin}
+      password: ${ADMIN_PASSWORD:admin}
+      roles: ADMIN
+
+  # Spring AI MCP Server Configuration
+  ai:
+    mcp:
+      server:
+        name: "spring-documentation-server"
+        type: "sync"
+        version: "1.5.4"
+        instructions: |
+          Spring Boot Documentation MCP Server provides comprehensive access to Spring ecosystem documentation.
+
+          Total: 44 tools available (10 documentation + 7 migration + 7 language evolution + 8 flavors + 3 flavor groups + 5 initializr + 4 javadoc)
+
+          Documentation Tools (10):
+          1. searchSpringDocs: Search across all Spring documentation
+          2. getSpringVersions: List available versions for a Spring project
+          3. listSpringProjects: List all available Spring projects
+          4. getDocumentationByVersion: Get all documentation for a specific version
+          5. getCodeExamples: Search for code examples with filters
+          6. listSpringBootVersions: List Spring Boot versions
+          7. getLatestSpringBootVersion: Get latest patch version for major.minor
+          8. filterSpringBootVersionsBySupport: Filter by support status
+          9. listProjectsBySpringBootVersion: List compatible projects
+          10. findProjectsByUseCase: Search projects by use case
+
+          Migration Knowledge Tools (7) - OpenRewrite feature:
+          11. getSpringMigrationGuide: Get comprehensive migration guide between versions
+          12. getBreakingChanges: Get breaking changes for a project version
+          13. searchMigrationKnowledge: Search migration knowledge base
+          14. getAvailableMigrationPaths: List documented upgrade paths
+          15. getTransformationsByType: Get transformations by type (IMPORT, DEPENDENCY, etc.)
+          16. getDeprecationReplacement: Find replacement for deprecated APIs
+          17. checkVersionCompatibility: Check dependency compatibility
+
+          Language Evolution Tools (6) - Language feature tracking:
+          18. getLanguageVersions: List all versions for Java or Kotlin
+          19. getLanguageFeatures: Get features for a language version with filters
+          20. getModernPatterns: Get old vs new code patterns for a feature
+          21. getLanguageVersionDiff: Compare features between two versions
+          22. getSpringBootLanguageRequirements: Get language requirements for Spring Boot
+          23. searchLanguageFeatures: Search language features by keyword
+
+          Flavors Tools (8) - Company guidelines and patterns:
+          24. searchFlavors: Search company guidelines, patterns, and configurations
+          25. getFlavorByName: Get complete flavor content by unique name
+          26. getFlavorsByCategory: List flavors in a category (ARCHITECTURE, COMPLIANCE, AGENTS, INITIALIZATION, GENERAL)
+          27. getArchitecturePatterns: Get architecture patterns for specific technologies
+          28. getComplianceRules: Get compliance rules by framework (GDPR, SOC2, etc.)
+          29. getAgentConfiguration: Get AI agent configuration for use case
+          30. getProjectInitialization: Get project initialization template
+          31. listFlavorCategories: List categories with counts
+
+          Flavor Groups Tools (3) - Team-based authorization:
+          32. listFlavorGroups: List accessible flavor groups (public + member private)
+          33. getFlavorsGroup: Get all flavors in a specific group
+          34. getFlavorGroupStatistics: Get group statistics
+
+          Initializr Tools (5) - Spring Boot project generation:
+          35. initializrGetDependency: Get dependency with Maven/Gradle snippet
+          36. initializrSearchDependencies: Search dependencies by name/description
+          37. initializrCheckCompatibility: Check dependency version compatibility
+          38. initializrGetBootVersions: List available Spring Boot versions
+          39. initializrGetDependencyCategories: Browse dependencies by category
+
+          Javadoc Tools (4) - API documentation access:
+          40. getClassDoc: Get full class documentation with methods, fields, constructors
+          41. getPackageDoc: Get package documentation with list of classes/interfaces
+          42. searchJavadocs: Full-text search across all Javadoc content
+          43. listJavadocLibraries: List all libraries with available versions
+
+          SSE endpoint: /mcp/spring/sse
+          Message endpoint: /mcp/spring/messages
+
+        sse-endpoint: /mcp/spring/sse
+        sse-message-endpoint: /mcp/spring/messages
+
+        capabilities:
+          tool: true
+          completion: false
+          prompt: false
+          resource: false
+
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful  # Enable graceful shutdown
+  error:
+    include-message: always
+    include-binding-errors: always
+  compression:
+    enabled: true
+  servlet:
+    session:
+      timeout: 30m
+      persistent: false  # Disable session persistence to avoid deserialization errors on restart
+
+# Lifecycle configuration - limit shutdown wait time
+spring.lifecycle:
+  timeout-per-shutdown-phase: 10s  # Don't wait more than 10 seconds for connections to close
+
+# MCP Server Configuration
+mcp:
+  server:
+    name: "Spring Documentation MCP Server"
+    version: "1.4.4"
+    sse:
+      timeout: 3600000 # 1 hour in milliseconds
+      heartbeat-interval: 30000 # 30 seconds in milliseconds
+
+  # MCP Transport 2025-06-18 Protocol Compliance
+  # See: https://spec.modelcontextprotocol.io/2025-06-18/basic/transports/
+  security:
+    # Origin header validation for browser-based clients
+    # Set to false to disable origin checking (useful for CLI tools)
+    validate-origin: ${MCP_VALIDATE_ORIGIN:true}
+    # Comma-separated list of allowed origins, or "*" to allow all
+    # Examples: "https://example.com,https://app.example.com" or "*"
+    allowed-origins: ${MCP_ALLOWED_ORIGINS:*}
+
+  documentation:
+    base-urls:
+      spring-docs: "https://docs.spring.io"
+      spring-guides: "https://spring.io/guides"
+      spring-api: "https://docs.spring.io/spring-framework/docs"
+
+    external-sources:
+      - name: "SpringDoc OpenAPI"
+        url: "https://springdoc.org"
+        type: "openapi"
+      - name: "Baeldung Spring"
+        url: "https://www.baeldung.com/spring-tutorial"
+        type: "tutorial"
+
+    fetch:
+      enabled: true  # Enables manual sync operations (required for sync functionality)
+      # Note: All scheduled synchronization is managed via UI at /settings
+      # - Comprehensive Sync: Configurable via SchedulerService (disabled by default)
+      # - Language Evolution: Configurable via LanguageSchedulerService (disabled by default)
+      # No hardcoded @Scheduled annotations - users control all schedules via UI
+      timeout: 30000 # 30 seconds
+      retry:
+        max-attempts: 3
+        delay: 5000 # 5 seconds
+        multiplier: 2.0
+
+    bootstrap:
+      enabled: ${BOOTSTRAP_DOCS:false}
+      on-startup: false
+      projects:
+        - spring-boot
+        - spring-framework
+        - spring-data
+        - spring-security
+        - spring-cloud
+
+    search:
+      max-results: 50
+      default-limit: 5
+      cache-ttl: 3600 # 1 hour
+      highlight: true
+
+    indexing:
+      batch-size: 100
+      parallel: true
+      max-threads: 4
+
+    versioning:
+      strategy: "n-2-latest-n1"
+      auto-detect: true
+      include-snapshots: true
+      include-release-candidates: true
+
+  # OpenRewrite Feature Configuration
+  features:
+    openrewrite:
+      enabled: ${OPENREWRITE_ENABLED:true}
+      sync:
+        # Note: Runs as Phase 7 of Comprehensive Sync - schedule managed via UI
+        enabled: ${OPENREWRITE_SYNC_ENABLED:true}  # Enabled by default (runs with comprehensive sync)
+      github:
+        base-url: "https://raw.githubusercontent.com/openrewrite/rewrite-spring/main"
+        owner: "openrewrite"
+        repo: "rewrite-spring"
+      attribution:
+        name: "OpenRewrite"
+        license: "Moderne Source Available License"
+        license-url: "https://docs.openrewrite.org/licensing/openrewrite-licensing"
+        repository: "https://github.com/openrewrite/rewrite-spring"
+        notice: "Recipe data sourced from OpenRewrite project. Not for commercial redistribution."
+
+    # Language Evolution Feature Configuration
+    # Note: This feature has its OWN scheduler (separate from Comprehensive Sync)
+    # Configurable via UI at /settings - Language Evolution accordion
+    language-evolution:
+      enabled: ${LANGUAGE_EVOLUTION_ENABLED:true}
+      sync:
+        enabled: ${LANGUAGE_SYNC_ENABLED:true}  # Disabled by default - enable via UI
+        default-frequency: DAILY
+        default-time: "04:00"
+      sources:
+        java:
+          jep-base-url: "https://openjdk.org/jeps"
+          oracle-docs: "https://docs.oracle.com/en/java"
+          min-version: 8
+        kotlin:
+          kep-base-url: "https://github.com/Kotlin/KEEP/tree/master/proposals"
+          docs: "https://kotlinlang.org/docs"
+          min-version: "1.6"
+      attribution:
+        java:
+          name: "OpenJDK"
+          license: "GPL-2.0"
+          repository: "https://github.com/openjdk/jdk"
+        kotlin:
+          name: "Kotlin"
+          license: "Apache-2.0"
+          repository: "https://github.com/JetBrains/kotlin"
+
+    # Flavors Feature Configuration
+    flavors:
+      enabled: ${FLAVORS_ENABLED:true}
+      categories:
+        - ARCHITECTURE
+        - COMPLIANCE
+        - AGENTS
+        - INITIALIZATION
+        - GENERAL
+      search:
+        default-limit: 10
+        max-limit: 50
+        full-text-search: true
+      editor:
+        autosave: true
+        autosave-delay: 5000
+        spell-checker: true
+        min-height: "400px"
+        max-height: "600px"
+
+    # Sync Feature Configuration
+    sync:
+      fix-versions:
+        enabled: ${SYNC_FIX_VERSIONS_ENABLED:false}  # Disabled by default - one-time cleanup utility
+
+    # Boot Initializr Feature Configuration (Release 1.4.0)
+    initializr:
+      enabled: ${INITIALIZR_ENABLED:true}
+      base-url: ${INITIALIZR_BASE_URL:https://start.spring.io}
+      # Cache settings (actual TTL managed in CacheConfig.java)
+      cache:
+        enabled: true
+        # initializr-metadata: 60 min TTL, max 10 entries
+        # initializr-dependencies: 30 min TTL, max 500 entries
+        # initializr-categories: 60 min TTL, max 50 entries
+      defaults:
+        boot-version: "3.5.9"
+        java-version: "21"
+        language: "java"
+        packaging: "jar"
+        build-type: "gradle-project"
+        group-id: "com.example"
+        artifact-id: "demo"
+
+    # Javadocs Downloader Feature Configuration (Release 1.4.2)
+    javadocs:
+      enabled: ${JAVADOCS_ENABLED:true}
+      sync:
+        # Note: Runs as Phase 9 of Comprehensive Sync - schedule managed via UI
+        enabled: ${JAVADOCS_SYNC_ENABLED:true}  # Enabled by default (runs with comprehensive sync)
+        max-failures: 5
+        rate-limit-ms: 230
+        batch-size: 50
+        on-startup: false
+      parser:
+        connection-timeout-ms: 10000
+        read-timeout-ms: 30000
+        user-agent: "Spring-MCP-Server/1.5.0 (Javadoc-Crawler)"
+        max-depth: 3
+        max-classes-per-package: 500
+        max-methods-per-class: 200
+        max-retries: 3
+        retry-delay-ms: 1000
+      cache:
+        enabled: true
+        ttl-seconds: 3600
+        max-entries: 1000
+      search:
+        default-limit: 10
+        max-limit: 50
+        full-text-search: true
+        include-methods: true
+        include-fields: false
+      attribution:
+        notice: "Javadoc content sourced from Spring projects. See individual project licenses."
+        base-url: "https://docs.spring.io"
+
+# GitHub Configuration for Documentation Fetching
+github:
+  api:
+    base-url: https://api.github.com
+    raw-url: https://raw.githubusercontent.com
+    token: ${GITHUB_TOKEN:}  # Optional: increases rate limit to 5000 req/hour
+    organization: spring-projects
+    timeout: 30000  # 30 seconds
+    max-retries: 3
+    retry-delay: 1000  # 1 second
+
+  documentation:
+    # Note: Runs as Phase 8 of Comprehensive Sync - schedule managed via UI
+    enabled: ${GITHUB_DOCS_ENABLED:true}  # Enabled by default (runs with comprehensive sync)
+    max-files-per-sync: 500
+    file-extensions:
+      - .adoc
+
+    # Default documentation paths (for main branch / latest versions)
+    paths:
+      spring-boot: documentation/spring-boot-docs/src/docs/antora/modules
+      spring-security: docs/modules/ROOT/pages
+      spring-framework: framework-docs/modules/ROOT/pages
+      spring-data-commons: src/main/antora/modules/ROOT/pages
+      spring-data-jpa: src/main/antora/modules/ROOT/pages
+      spring-batch: docs/modules/ROOT/pages
+      spring-integration: src/reference/antora/modules/ROOT/pages
+      spring-kafka: src/main/antora/modules/ROOT/pages
+      spring-ai: docs/modules/ROOT/pages
+
+    # Version-specific path overrides (structure changed between versions)
+    version-paths:
+      spring-boot:
+        threshold: "4.0.0"
+        old-path: spring-boot-project/spring-boot-docs/src/docs/antora/modules
+        new-path: documentation/spring-boot-docs/src/docs/antora/modules
+
+    # Tag prefixes (some projects use 'v' prefix, others don't)
+    tag-prefixes:
+      spring-boot: "v"
+      spring-framework: "v"
+      spring-security: ""
+      spring-data-commons: ""
+      spring-data-jpa: ""
+      spring-batch: ""
+      spring-integration: "v"
+      spring-kafka: "v"
+      spring-ai: "v"
+
+# Actuator for health checks and monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.spring.mcp: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.authentication: DEBUG
+    org.springframework.security.web: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.flywaydb: INFO
+    # MCP Server logging
+    io.modelcontextprotocol: INFO
+    org.springframework.ai.mcp: INFO
+    # Suppress HtmlUnit noise (JavaScript engine errors, obsolete content type warnings)
+    org.htmlunit: ERROR
+    org.htmlunit.javascript: OFF
+    org.htmlunit.css: OFF
+    org.htmlunit.corejs: OFF
+    org.htmlunit.IncorrectnessListenerImpl: OFF
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %logger{36} - %msg%n"
+    # File pattern (used when file logging is enabled)
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  # File logging is DISABLED by default (console only)
+  # To enable file logging, uncomment the following lines:
+  # file:
+  #   name: logs/spring-boot-documentation-mcp-server.log
+  # logback:
+  #   rollingpolicy:
+  #     max-file-size: 10MB
+  #     max-history: 30

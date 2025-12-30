@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title>Documentation Links - Spring MCP Server</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Filters and Search -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <form th:action="@{/documentation}" method="get" class="row g-3 align-items-end">
+                    <!-- Project Filter -->
+                    <div class="col-md-4">
+                        <label for="projectFilter" class="form-label">
+                            <i class="bi bi-folder"></i> Project
+                        </label>
+                        <select id="projectFilter" name="projectSlug" class="form-select">
+                            <option value="">All Projects</option>
+                            <option th:each="project : ${projects}"
+                                    th:if="${project != null}"
+                                    th:value="${project != null ? project.slug : ''}"
+                                    th:text="${project != null ? project.name : 'N/A'}"
+                                    th:selected="${projectSlug != null and project != null and projectSlug == project.slug}">
+                                Project Name
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Search Box -->
+                    <div class="col-md-8">
+                        <label for="searchDoc" class="form-label">
+                            <i class="bi bi-search"></i> Search
+                        </label>
+                        <div class="search-bar">
+                            <i class="bi bi-search search-bar-icon"></i>
+                            <input type="text"
+                                   id="searchDoc"
+                                   name="search"
+                                   class="form-control"
+                                   placeholder="Search documentation content..."
+                                   th:value="${search}">
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="col-12">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-funnel"></i> Apply Filters
+                            </button>
+                            <a th:href="@{/documentation}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Clear
+                            </a>
+                            <button type="button" class="btn btn-outline-success ms-auto"
+                                    sec:authorize="hasAnyRole('ADMIN', 'USER')"
+                                    onclick="refreshAll()">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh All
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Documentation Table -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom">
+                <h5 class="mb-0">
+                    <i class="bi bi-book-fill text-spring-green"></i>
+                    <span th:text="${totalElements} + ' Documentation Link(s)'">0 Documentation Link(s)</span>
+                </h5>
+                <small class="text-muted d-block mt-1">
+                    <i class="bi bi-info-circle"></i> Documentation is automatically synced from spring.io
+                </small>
+            </div>
+
+            <div class="card-body p-0">
+                <!-- Empty State -->
+                <div th:if="${#lists.isEmpty(documentationLinks)}" class="text-center py-5">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                    <h5 class="mt-3 text-muted">No documentation links found</h5>
+                    <p class="text-muted">
+                        <span th:if="${search}">Try adjusting your search or filter criteria.</span>
+                        <span th:unless="${search}">Add your first documentation link to get started.</span>
+                    </p>
+                </div>
+
+                <!-- Documentation Table -->
+                <div th:unless="${#lists.isEmpty(documentationLinks)}" class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                        <tr>
+                            <th style="width: 3%;"></th>
+                            <th style="width: 30%;">Title</th>
+                            <th style="width: 20%;">Project</th>
+                            <th style="width: 12%;">Version</th>
+                            <th style="width: 15%;">Type</th>
+                            <th style="width: 10%;">Status</th>
+                            <th style="width: 10%;">Last Fetched</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <th:block th:each="doc, iterStat : ${documentationLinks}">
+                            <tr th:id="|doc-row-${doc.id}|">
+                                <!-- Expand/Collapse Button -->
+                                <td class="text-center">
+                                    <button type="button"
+                                            class="btn btn-sm btn-link text-decoration-none p-0"
+                                            onclick="toggleMarkdown(this)"
+                                            th:data-doc-id="${doc.id}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </button>
+                                </td>
+                                <!-- Title -->
+                                <td>
+                                    <div class="fw-bold text-dark">
+                                        <i class="bi bi-file-text text-spring-green me-1"></i>
+                                        <span th:text="${doc.title}">Documentation Title</span>
+                                    </div>
+                                    <div class="small text-muted text-truncate" style="max-width: 300px;">
+                                        <i class="bi bi-link-45deg"></i>
+                                        <span th:text="${doc.url}">URL</span>
+                                    </div>
+                                </td>
+
+                                <!-- Project -->
+                                <td>
+                                    <span th:if="${doc.version != null and doc.version.project != null}"
+                                          th:text="${doc.version.project.name}">Spring Boot</span>
+                                    <span th:if="${doc.version == null or doc.version.project == null}"
+                                          class="text-muted">N/A</span>
+                                </td>
+
+                                <!-- Version -->
+                                <td>
+                                    <code th:if="${doc.version != null}"
+                                          th:text="${doc.version.version}">3.5.7</code>
+                                    <span th:if="${doc.version == null}" class="text-muted">N/A</span>
+                                </td>
+
+                                <!-- Type Badge -->
+                                <td>
+                                    <span th:if="${doc.docType != null}" class="badge"
+                                          th:classappend="${doc.docType.name == 'Reference'} ? 'bg-primary' :
+                                                         (${doc.docType.name == 'API'} ? 'bg-info text-dark' :
+                                                         (${doc.docType.name == 'Guide'} ? 'bg-success' :
+                                                         (${doc.docType.name == 'Tutorial'} ? 'bg-warning text-dark' : 'bg-secondary')))"
+                                          th:text="${doc.docType.name}">
+                                        Reference
+                                    </span>
+                                    <span th:if="${doc.docType == null}" class="badge bg-secondary text-muted">N/A</span>
+                                </td>
+
+                                <!-- Active Status -->
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${doc.isActive} ? 'bg-success' : 'bg-secondary'">
+                                        <span th:text="${doc.isActive} ? 'Active' : 'Inactive'">Active</span>
+                                    </span>
+                                </td>
+
+                                <!-- Last Fetched -->
+                                <td>
+                                    <span th:if="${doc.lastFetched}">
+                                        <i class="bi bi-clock me-1"></i>
+                                        <span th:text="${#temporals.format(doc.lastFetched, 'MMM dd, yyyy')}">
+                                            Jan 01, 2025
+                                        </span>
+                                    </span>
+                                    <span class="text-muted small fst-italic" th:unless="${doc.lastFetched}">
+                                        <i class="bi bi-dash-circle me-1"></i>
+                                        Never
+                                    </span>
+                                </td>
+                            </tr>
+                            <!-- Expandable Markdown Content Row -->
+                            <tr class="markdown-row d-none">
+                                <td colspan="7" class="bg-light border-top-0 pt-0">
+                                    <div class="card border-0 shadow-sm m-2">
+                                        <div class="card-header bg-white">
+                                            <h6 class="mb-0">
+                                                <i class="bi bi-file-earmark-text text-spring-green"></i>
+                                                Documentation Content
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <!-- Loading Spinner -->
+                                            <div class="markdown-loading text-center py-4 d-none">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                                <p class="text-muted mt-2">Loading documentation content...</p>
+                                            </div>
+
+                                            <!-- Markdown Content -->
+                                            <div class="markdown-content markdown-body" style="max-height: 600px; overflow-y: auto;">
+                                                Content will be loaded here via JavaScript
+                                            </div>
+
+                                            <!-- Error Message -->
+                                            <div class="markdown-error alert alert-warning d-none">
+                                                <i class="bi bi-exclamation-triangle"></i>
+                                                <span class="markdown-error-msg">Failed to load documentation content.</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- GitHub Documentation Section -->
+                                    <div class="card border-0 shadow-sm m-2 mt-0 github-docs-section" th:data-doc-id="${doc.id}">
+                                        <div class="card-header bg-dark text-white d-flex align-items-center justify-content-between"
+                                             style="cursor: pointer;"
+                                             onclick="toggleGitHubDocs(this)">
+                                            <h6 class="mb-0">
+                                                <i class="bi bi-github me-2"></i>
+                                                GitHub Documentation
+                                                <span class="github-docs-count badge bg-light text-dark ms-2">Loading...</span>
+                                            </h6>
+                                            <i class="bi bi-chevron-down github-docs-chevron"></i>
+                                        </div>
+                                        <div class="github-docs-body collapse">
+                                            <!-- Loading Spinner -->
+                                            <div class="github-docs-loading text-center py-4">
+                                                <div class="spinner-border spinner-border-sm text-secondary" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                                <span class="text-muted ms-2">Loading GitHub documentation...</span>
+                                            </div>
+
+                                            <!-- GitHub Docs List -->
+                                            <div class="github-docs-list list-group list-group-flush d-none">
+                                                <!-- Items will be loaded via JavaScript -->
+                                            </div>
+
+                                            <!-- No GitHub Docs Message -->
+                                            <div class="github-docs-empty text-center py-3 d-none">
+                                                <i class="bi bi-inbox text-muted"></i>
+                                                <span class="text-muted ms-2">No GitHub documentation available for this version.</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </th:block>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div th:if="${totalPages > 1}" class="card-footer bg-white border-top">
+                <nav aria-label="Documentation pagination">
+                    <ul class="pagination justify-content-center mb-0">
+                        <!-- Previous -->
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/documentation(page=${currentPage - 1}, size=${pageSize}, projectSlug=${projectSlug}, search=${search})}"
+                               th:unless="${currentPage == 0}">
+                                <i class="bi bi-chevron-left"></i> Previous
+                            </a>
+                            <span class="page-link" th:if="${currentPage == 0}">
+                                <i class="bi bi-chevron-left"></i> Previous
+                            </span>
+                        </li>
+
+                        <!-- Page Numbers -->
+                        <li class="page-item"
+                            th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                            th:if="${i >= currentPage - 2 && i <= currentPage + 2}"
+                            th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link"
+                               th:href="@{/documentation(page=${i}, size=${pageSize}, projectSlug=${projectSlug}, search=${search})}"
+                               th:text="${i + 1}">1</a>
+                        </li>
+
+                        <!-- Next -->
+                        <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/documentation(page=${currentPage + 1}, size=${pageSize}, projectSlug=${projectSlug}, search=${search})}"
+                               th:unless="${currentPage >= totalPages - 1}">
+                                Next <i class="bi bi-chevron-right"></i>
+                            </a>
+                            <span class="page-link" th:if="${currentPage >= totalPages - 1}">
+                                Next <i class="bi bi-chevron-right"></i>
+                            </span>
+                        </li>
+                    </ul>
+                </nav>
+
+                <!-- Page Info -->
+                <div th:if="${totalElements != null and totalElements > 0}" class="text-center mt-2 text-muted small">
+                    <span th:with="startItem=${(currentPage * pageSize) + 1}, endItem=${(currentPage + 1) * pageSize}">
+                        Showing <span th:text="${startItem}">1</span>
+                        to <span th:text="${endItem > totalElements ? totalElements : endItem}">10</span>
+                        of <span th:text="${totalElements}">100</span> documentation links
+                    </span>
+                </div>
+            </div>
+        </div>
+
+    <!-- Page-specific Styles (local) -->
+    <link th:href="@{/vendor/github-markdown-css/github-markdown.min.css}" rel="stylesheet">
+
+    <!-- Page-specific JavaScript (local) -->
+    <script th:src="@{/vendor/marked/marked.min.js}"></script>
+    <script th:src="@{/js/documentation.js}"></script>
+</div>
+</body>
+</html>

@@ -1,0 +1,26 @@
+# Production Profile Configuration
+spring:
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  thymeleaf:
+    cache: true
+
+  web:
+    resources:
+      cache:
+        period: 31536000 # 1 year
+
+logging:
+  level:
+    com.spring.mcp: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+
+mcp:
+  documentation:
+    fetch:
+      enabled: true

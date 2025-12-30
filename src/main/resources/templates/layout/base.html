@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- Page Title -->
+    <title th:text="${pageTitle != null ? pageTitle + ' - Spring MCP Server' : 'Spring MCP Server'}">Spring MCP Server</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/images/spring-icon.png" th:href="@{/images/spring-icon.png}">
+
+    <!-- Bootstrap 5 CSS (local) -->
+    <link th:href="@{/vendor/bootstrap/bootstrap.min.css}" rel="stylesheet">
+
+    <!-- Bootstrap Icons (local) -->
+    <link th:href="@{/vendor/bootstrap-icons/bootstrap-icons.min.css}" rel="stylesheet">
+
+    <!-- Custom Spring MCP CSS -->
+    <link rel="stylesheet" th:href="@{/css/spring-mcp.css}">
+
+    <!-- Page-specific CSS -->
+    <th:block th:replace="${extraCss}"></th:block>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav th:replace="~{fragments/navigation :: navbar}"></nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <div class="container container-main">
+            <!-- Page Header -->
+            <div class="page-header" th:if="${pageTitle != null}">
+                <h1 class="page-title" th:text="${pageTitle}">Page Title</h1>
+                <p class="page-subtitle" th:if="${pageSubtitle != null}" th:text="${pageSubtitle}">Page subtitle</p>
+            </div>
+
+            <!-- Alert Messages -->
+            <div th:if="${successMessage != null}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span th:text="${successMessage}">Success message</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div th:if="${errorMessage != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span th:text="${errorMessage}">Error message</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div th:if="${warningMessage != null}" class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-circle-fill me-2"></i>
+                <span th:text="${warningMessage}">Warning message</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div th:if="${infoMessage != null}" class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <span th:text="${infoMessage}">Info message</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Main Content Block -->
+            <div th:replace="${content}">
+                <!-- Page-specific content goes here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="footer-text">
+                        &copy; <span th:text="${#dates.year(#dates.createNow())}">2025</span> Spring MCP Server
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="footer-links">
+                        <a href="https://docs.spring.io" target="_blank" rel="noopener">
+                            <i class="bi bi-book me-1"></i>Documentation
+                        </a>
+                        <a href="https://github.com/spring-projects" target="_blank" rel="noopener">
+                            <i class="bi bi-github me-1"></i>GitHub
+                        </a>
+                        <a href="https://spring.io" target="_blank" rel="noopener">
+                            <i class="bi bi-globe me-1"></i>Spring.io
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JavaScript Bundle with Popper (local) -->
+    <script th:src="@{/vendor/bootstrap/bootstrap.bundle.min.js}"></script>
+
+    <!-- Alpine.js for reactive components (local) -->
+    <script defer th:src="@{/vendor/alpinejs/alpine.min.js}"></script>
+
+    <!-- HTMX for dynamic updates (local) -->
+    <script th:src="@{/vendor/htmx/htmx.min.js}"></script>
+
+    <!-- Chart.js for statistics (local, loaded on demand) -->
+    <script th:if="${includeCharts}" th:src="@{/vendor/chartjs/chart.umd.min.js}"></script>
+
+    <!-- Page-specific JavaScript -->
+    <th:block th:replace="${extraJs}"></th:block>
+
+    <!-- Global JavaScript utilities -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // CSRF Token for AJAX requests
+        const csrfToken = /*[[${_csrf?.token}]]*/ null;
+        const csrfHeader = /*[[${_csrf?.headerName}]]*/ null;
+
+        // Configure HTMX to include CSRF token
+        if (csrfToken && csrfHeader) {
+            document.addEventListener('htmx:configRequest', function(event) {
+                event.detail.headers[csrfHeader] = csrfToken;
+            });
+        }
+
+        // Auto-dismiss alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+        });
+
+        // Confirmation dialogs
+        function confirmAction(message) {
+            return confirm(message || 'Are you sure you want to perform this action?');
+        }
+
+        // Loading spinner
+        function showLoading() {
+            const spinner = document.createElement('div');
+            spinner.id = 'global-loading';
+            spinner.className = 'd-flex justify-content-center align-items-center';
+            spinner.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999;';
+            spinner.innerHTML = '<div class="spinner-spring"></div>';
+            document.body.appendChild(spinner);
+        }
+
+        function hideLoading() {
+            const spinner = document.getElementById('global-loading');
+            if (spinner) {
+                spinner.remove();
+            }
+        }
+
+        // Format dates
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Format version
+        function formatVersion(version) {
+            if (!version) return '';
+            return version.replace(/^v/, '');
+        }
+        /*]]>*/
+    </script>
+</body>
+</html>

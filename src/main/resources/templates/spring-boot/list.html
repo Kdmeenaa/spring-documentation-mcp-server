@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title>Spring Boot Versions - Spring MCP Server</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="bi bi-rocket-takeoff text-spring-green"></i>
+            Spring Boot Versions
+        </h1>
+        <div class="text-muted small">
+            <i class="bi bi-info-circle"></i> Read-only view
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div th:if="${#lists.isEmpty(versions)}" class="text-center py-5">
+        <div class="mb-4">
+            <i class="bi bi-inbox display-1 text-muted"></i>
+        </div>
+        <h3 class="text-muted mb-3">No Spring Boot Versions Found</h3>
+        <p class="text-muted mb-4">Spring Boot versions will appear here after synchronization.</p>
+    </div>
+
+    <!-- Versions List -->
+    <div th:if="${!#lists.isEmpty(versions)}">
+        <!-- Mobile View (Cards) -->
+        <div class="d-md-none">
+            <div class="card mb-3" th:each="version : ${versions}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-rocket text-spring-green"></i>
+                            <span th:text="${version.version}">3.5.7</span>
+                        </h5>
+                        <span class="badge"
+                              th:classappend="${version.isCurrent ? 'bg-success' : 'bg-secondary'}"
+                              th:text="${version.isCurrent ? 'Current' : 'Legacy'}">
+                            Current
+                        </span>
+                    </div>
+
+                    <div class="mb-2">
+                        <small class="text-muted">Support: </small>
+                        <span th:if="${version.getRedFlag(enterpriseSubscriptionEnabled)}">
+                            <i class="bi bi-x-circle-fill text-danger"></i>
+                            <span class="text-danger">Ended</span>
+                        </span>
+                        <span th:unless="${version.getRedFlag(enterpriseSubscriptionEnabled)}">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <span class="text-success">Active</span>
+                        </span>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted">State: </small>
+                        <span class="badge"
+                              th:classappend="${version.state == 'CURRENT' ? 'bg-success' :
+                                                               version.state?.name() == 'GA' ? 'bg-primary' :
+                                                               version.state?.name() == 'RC' ? 'bg-warning text-dark' :
+                                                               version.state?.name() == 'SNAPSHOT' ? 'bg-info text-dark' :
+                                                               version.state?.name() == 'PRE' ? 'bg-secondary' :
+                                                               version.state?.name() == 'MILESTONE' ? 'bg-secondary' : 'bg-secondary'}"
+
+                              th:text="${version.state}">GA</span>
+                    </div>
+
+                    <div class="mb-2">
+                        <small class="text-muted">OSS Support: </small>
+                        <span
+                                th:text="${version.ossSupportEnd != null ? #temporals.format(version.ossSupportEnd, 'MMM dd, yyyy') : 'N/A'}">
+                            Jan 01, 2026
+                        </span>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted">Enterprise Support: </small>
+                        <span
+                                th:text="${version.enterpriseSupportEnd != null ? #temporals.format(version.enterpriseSupportEnd, 'MMM dd, yyyy') : 'N/A'}">
+                            Jan 01, 2028
+                        </span>
+                    </div>
+
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a th:href="${version.referenceDocUrlFormatted()}"
+                           th:if="${version.referenceDocUrl != null}"
+                           target="_blank"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-book"></i> Reference
+                        </a>
+                        <a th:href="${version.apiDocUrlFormatted()}"
+                           th:if="${version.apiDocUrl != null}"
+                           target="_blank"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-file-code"></i> API Docs
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desktop View (Table) -->
+        <div class="d-none d-md-block">
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col" style="width: 5%;">
+                                        <i class="bi bi-rocket text-spring-green"></i>
+                                    </th>
+                                    <th scope="col" style="width: 15%;">Version</th>
+                                    <th scope="col" style="width: 8%;" class="text-center">Support</th>
+                                    <th scope="col" style="width: 10%;" class="text-center">Status</th>
+                                    <th scope="col" style="width: 8%;" class="text-center">Current</th>
+                                    <th scope="col" style="width: 14%;">OSS End of Support</th>
+                                    <th scope="col" style="width: 14%;">Enterprise End of Support</th>
+                                    <th scope="col" style="width: 13%;" class="text-center">Reference Docs</th>
+                                    <th scope="col" style="width: 13%;" class="text-center">API Docs</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="version : ${versions}">
+                                    <td class="align-middle">
+                                        <div class="version-icon bg-spring-green-light text-spring-green rounded-circle d-flex align-items-center justify-content-center"
+                                             style="width: 40px; height: 40px;">
+                                            <i class="bi bi-rocket fs-5"></i>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle">
+                                        <span class="fw-semibold" th:text="${version.version}">3.5.7</span>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <span th:if="${version.getRedFlag(enterpriseSubscriptionEnabled)}">
+                                            <i class="bi bi-x-circle-fill text-danger fs-5"
+                                               title="Support ended"
+                                               th:title="${'Support ended on ' + (enterpriseSubscriptionEnabled ?
+                                                          (version.enterpriseSupportEnd != null ? #temporals.format(version.enterpriseSupportEnd, 'MMM dd, yyyy') : 'N/A') :
+                                                          (version.ossSupportEnd != null ? #temporals.format(version.ossSupportEnd, 'MMM dd, yyyy') : 'N/A'))}"></i>
+                                        </span>
+                                        <span th:unless="${version.getRedFlag(enterpriseSubscriptionEnabled)}">
+                                            <i class="bi bi-check-circle-fill text-success fs-5"
+                                               title="Supported"></i>
+                                        </span>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <span class="badge"
+                                              th:classappend="${version.isCurrent ? 'bg-success' :
+                                                               version.state?.name() == 'GA' ? 'bg-primary' :
+                                                               version.state?.name() == 'RC' ? 'bg-warning text-dark' :
+                                                               version.state?.name() == 'SNAPSHOT' ? 'bg-info text-dark' :
+                                                               version.state?.name() == 'PRE' ? 'bg-secondary' :
+                                                               version.state?.name() == 'MILESTONE' ? 'bg-secondary' : 'bg-secondary'}"
+
+                                              th:text="${version.state}">GA</span>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <span th:if="${version.isCurrent}">
+                                            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                        </span>
+                                        <span th:unless="${version.isCurrent}" class="text-muted">
+                                            <i class="bi bi-circle fs-6"></i>
+                                        </span>
+                                    </td>
+                                    <td class="align-middle">
+                                        <span th:if="${version.ossSupportEnd != null}">
+                                            <i class="bi bi-calendar-event me-1"></i>
+                                            <span
+                                                    th:text="${#temporals.format(version.ossSupportEnd, 'MMM dd, yyyy')}">Jan 01, 2026</span>
+                                        </span>
+                                        <span th:unless="${version.ossSupportEnd != null}" class="text-muted">
+                                            N/A
+                                        </span>
+                                    </td>
+                                    <td class="align-middle">
+                                        <span th:if="${version.enterpriseSupportEnd != null}">
+                                            <i class="bi bi-calendar-event me-1"></i>
+                                            <span
+                                                    th:text="${#temporals.format(version.enterpriseSupportEnd, 'MMM dd, yyyy')}">Jan 01, 2028</span>
+                                        </span>
+                                        <span th:unless="${version.enterpriseSupportEnd != null}" class="text-muted">
+                                            N/A
+                                        </span>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <a th:href="${version.referenceDocUrlFormatted()}"
+                                           th:if="${version.referenceDocUrl != null}"
+                                           target="_blank"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="View Reference Documentation">
+                                            <i class="bi bi-book"></i>
+                                        </a>
+                                        <span th:unless="${version.referenceDocUrl != null}" class="text-muted">
+                                            -
+                                        </span>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <a th:href="${version.apiDocUrlFormatted()}"
+                                           th:if="${version.apiDocUrl != null}"
+                                           target="_blank"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="View API Documentation">
+                                            <i class="bi bi-file-code"></i>
+                                        </a>
+                                        <span th:unless="${version.apiDocUrl != null}" class="text-muted">
+                                            -
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Versions Summary -->
+            <div class="mt-3 text-muted">
+                <small>
+                    Showing <span th:text="${#lists.size(versions)}">0</span> Spring Boot version(s)
+                    <span th:if="${!#lists.isEmpty(versions.?[isCurrent])}">
+                        | Current version:
+                        <span class="text-spring-green fw-semibold"
+                              th:text="${!#lists.isEmpty(versions.?[isCurrent]) ? versions.?[isCurrent][0].version : 'N/A'}">
+                            3.5.7
+                        </span>
+                    </span>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles -->
+<th:block layout:fragment="scripts">
+    <style>
+        .bg-spring-green-light {
+            background-color: rgba(109, 179, 63, 0.1);
+        }
+
+        .text-spring-green {
+            color: #6db33f;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(109, 179, 63, 0.05);
+        }
+
+        .version-icon {
+            transition: all 0.3s ease;
+        }
+
+        tr:hover .version-icon {
+            transform: scale(1.1);
+        }
+
+        /* State badges */
+        .badge.xbg-primary {
+            background-color: #6db33f !important;
+        }
+
+        .badge.xbg-warning {
+            background-color: #fd7e14 !important;
+        }
+
+        .badge.xbg-info {
+            background-color: #17a2b8 !important;
+        }
+
+        .badge.xbg-secondary {
+            background-color: #6c757d !important;
+        }
+
+        .badge.xbg-success {
+            background-color: #28a745 !important;
+        }
+
+        /* Dark mode compatible borders */
+        .border-bottom {
+            border-color: var(--spring-border-dark) !important;
+        }
+    </style>
+</th:block>
+</body>
+</html>

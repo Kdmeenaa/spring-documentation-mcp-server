@@ -1,0 +1,51 @@
+package com.spring.mcp;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import com.vladsch.flexmark.html2md.converter.FlexmarkHtmlConverter;
+import org.junit.jupiter.api.Test;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+/**
+ * Test HTML to Markdown conversion with HtmlUnit-fetched content
+ */
+public class MarkdownConversionTest {
+
+    @Test
+    public void testConvertHtmlUnitOutputToMarkdown() throws Exception {
+        System.out.println("=== Testing HTML to Markdown Conversion ===\n");
+
+        // Read the HTML file that HtmlUnit saved
+        String html = Files.readString(Path.of("/tmp/htmlunit-spring-io.html"));
+        System.out.println("Loaded HTML file: " + html.length() + " characters");
+
+        // Parse with Jsoup
+        Document doc = Jsoup.parse(html);
+
+        // Extract the markdown.content section
+        Element overviewContent = doc.selectFirst(".markdown.content");
+
+        if (overviewContent != null) {
+            String overviewHtml = overviewContent.html();
+            System.out.println("Extracted OVERVIEW HTML: " + overviewHtml.length() + " characters");
+
+            // Convert to markdown
+            FlexmarkHtmlConverter converter = FlexmarkHtmlConverter.builder().build();
+            String markdown = converter.convert(overviewHtml);
+
+            System.out.println("\n=== Converted Markdown ===");
+            System.out.println("Markdown length: " + markdown.length() + " characters\n");
+            System.out.println(markdown);
+
+            // Save to file
+            Files.writeString(Path.of("/tmp/spring-boot-overview.md"), markdown);
+            System.out.println("\n✓ Saved to: /tmp/spring-boot-overview.md");
+        } else {
+            System.out.println("✗ ERROR: .markdown.content not found!");
+            throw new AssertionError("OVERVIEW content not found");
+        }
+    }
+}

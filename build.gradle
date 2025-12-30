@@ -1,0 +1,136 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.9'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.spring.mcp'
+version = '1.5.4'
+
+java {
+    // Using Java 25 (LTS version)
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
+    maven { url 'https://repo.spring.io/snapshot' }
+}
+
+ext {
+    springAiVersion = '1.1.2'
+    thymeleafVersion = '3.4.0'
+    jsoupVersion = '1.21.2'
+    htmlunitVersion = '4.19.0'
+    flexmarkVersion = '0.64.8'
+    guavaVersion = '33.5.0-jre'
+    asciidoctorjVersion = '3.0.1'
+    commonsLang3 = '3.18.0'
+    mockwebserver = '5.3.2'
+}
+
+dependencies {
+    // Spring Boot Starters
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+
+    // Caffeine Caching (high-performance cache for Initializr metadata)
+    implementation 'com.github.ben-manes.caffeine:caffeine'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation "nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:${thymeleafVersion}"
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+    // Database
+    runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-database-postgresql'
+    // Note: Using Hibernate 6.6 native PostgresSQL JSON and Array support instead of hypersistence-utils
+
+    // Spring AI MCP Server with SSE
+    implementation "org.springframework.ai:spring-ai-starter-mcp-server-webmvc:${springAiVersion}"
+
+    // HTML Parsing for documentation fetching
+    implementation "org.jsoup:jsoup:${jsoupVersion}"
+
+    // HtmlUnit for JavaScript-enabled web scraping
+    implementation "org.htmlunit:htmlunit:${htmlunitVersion}"
+
+    // HTML to Markdown conversion
+    implementation "com.vladsch.flexmark:flexmark-html2md-converter:${flexmarkVersion}"
+    implementation "com.vladsch.flexmark:flexmark:${flexmarkVersion}"
+
+    // AsciiDoc processing for GitHub-based documentation
+    implementation "org.asciidoctor:asciidoctorj:${asciidoctorjVersion}"
+
+    // JSON Processing
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    // HTTP Client for documentation fetching
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // Utilities
+    implementation "org.apache.commons:commons-lang3:${commonsLang3}"
+    implementation "com.google.guava:guava:${guavaVersion}"
+
+    // Lombok for reducing boilerplate
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // Development
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation "com.squareup.okhttp3:mockwebserver:${mockwebserver}"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Spring AI MCP Client for integration testing
+    testImplementation "org.springframework.ai:spring-ai-starter-mcp-client-webflux:${springAiVersion}"
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+    }
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+}
+
+// Ensure proper character encoding
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+// JVM args for bootRun
+// Note: --sun-misc-unsafe-memory-access=allow only available in Java 24+
+tasks.named('bootRun') {
+    jvmArgs = []
+}
+
+// Temporary task to print runtime classpath for HtmlUnit test
+tasks.register('printRuntimeClasspath') {
+    doLast {
+        println sourceSets.main.runtimeClasspath.asPath
+    }
+}

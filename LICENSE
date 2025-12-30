@@ -1,0 +1,178 @@
+MIT License
+
+Copyright (c) 2025 Spring Documentation MCP Server Project Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+================================================================================
+THIRD-PARTY COMPONENTS AND DEPENDENCIES
+================================================================================
+
+This project integrates with and depends on several third-party components,
+each with their own licenses. Users of this project MUST respect and comply
+with all applicable licenses of the following components:
+
+1. Spring Framework & Spring Boot (https://spring.io/)
+   License: Apache License 2.0
+   Copyright: Broadcom, Inc. and contributors
+
+2. Spring AI (https://spring.io/projects/spring-ai)
+   License: Apache License 2.0
+   Copyright: Broadcom, Inc. and contributors
+
+3. PostgreSQL (https://www.postgresql.org/)
+   License: PostgreSQL License (similar to MIT/BSD)
+   Copyright: The PostgreSQL Global Development Group
+
+4. Flyway (https://flywaydb.org/)
+   License: Apache License 2.0
+   Copyright: Redgate Software Ltd.
+
+5. Thymeleaf (https://www.thymeleaf.org/)
+   License: Apache License 2.0
+   Copyright: The Thymeleaf Team
+
+6. JSoup (https://jsoup.org/)
+   License: MIT License
+   Copyright: Jonathan Hedley
+
+7. HtmlUnit (https://htmlunit.org/)
+   License: Apache License 2.0
+   Copyright: Gargoyle Software Inc.
+
+8. Flexmark (https://github.com/vsch/flexmark-java)
+   License: BSD 2-Clause License
+   Copyright: Vladimir Schneider
+
+9. AsciidoctorJ (https://github.com/asciidoctor/asciidoctorj)
+   License: Apache License 2.0
+   Copyright: The Asciidoctor Project
+
+10. Jackson (https://github.com/FasterXML/jackson)
+    License: Apache License 2.0
+    Copyright: FasterXML, LLC
+
+11. Apache Commons Lang (https://commons.apache.org/proper/commons-lang/)
+    License: Apache License 2.0
+    Copyright: The Apache Software Foundation
+
+12. Google Guava (https://github.com/google/guava)
+    License: Apache License 2.0
+    Copyright: Google Inc.
+
+13. Project Lombok (https://projectlombok.org/)
+    License: MIT License
+    Copyright: The Project Lombok Authors
+
+14. Docker (https://www.docker.com/)
+    License: Apache License 2.0
+    Copyright: Docker, Inc.
+
+15. Model Context Protocol (https://modelcontextprotocol.io/)
+    License: MIT License
+    Copyright: Anthropic PBC
+
+--- Frontend Libraries (bundled in /static/vendor/) ---
+
+16. EasyMDE (https://github.com/Ionaru/easy-markdown-editor)
+    License: MIT License
+    Copyright: Sparksuite, Inc. and Jeroen Akkerman
+
+17. Alpine.js (https://alpinejs.dev/)
+    License: MIT License
+    Copyright: Caleb Porzio
+
+18. Bootstrap (https://getbootstrap.com/)
+    License: MIT License
+    Copyright: The Bootstrap Authors
+
+19. Bootstrap Icons (https://icons.getbootstrap.com/)
+    License: MIT License
+    Copyright: The Bootstrap Authors
+
+20. Chart.js (https://www.chartjs.org/)
+    License: MIT License
+    Copyright: Chart.js Contributors
+
+21. HTMX (https://htmx.org/)
+    License: BSD Zero Clause License
+    Copyright: Big Sky Software
+
+22. Highlight.js (https://highlightjs.org/)
+    License: BSD 3-Clause License
+    Copyright: Ivan Sagalaev and contributors
+
+23. Marked (https://marked.js.org/)
+    License: MIT License
+    Copyright: Christopher Jeffrey
+
+24. GitHub Markdown CSS (https://github.com/sindresorhus/github-markdown-css)
+    License: MIT License
+    Copyright: Sindre Sorhus
+
+================================================================================
+IMPORTANT NOTES
+================================================================================
+
+1. EDUCATIONAL PURPOSE:
+   This project is designed for educational and learning purposes.
+   It showcases integration patterns and architectural approaches using
+   industry-standard open-source components.
+
+2. FREE USE WITHOUT GUARANTEE:
+   This software is provided free of charge for any use. However, it comes
+   with absolutely NO WARRANTY or guarantee of any kind. Use at your own risk.
+
+3. SPRING DOCUMENTATION:
+   This project fetches and indexes documentation from docs.spring.io and
+   spring.io. Users must respect Spring's terms of service and trademark
+   guidelines when using this software. The indexed content remains the
+   intellectual property of Broadcom, Inc. and the Spring community.
+
+4. OPENREWRITE RECIPE DATA:
+   Migration recipe data is inspired by and attributed to the OpenRewrite
+   project. Recipe data is dynamically generated based on Spring project
+   versions. See: https://docs.openrewrite.org/licensing/openrewrite-licensing
+
+5. SECURITY:
+   Users are responsible for securing their deployments, managing credentials,
+   API keys, and following security best practices.
+
+6. COMPLIANCE:
+   Users must ensure compliance with all applicable laws, regulations, and
+   license agreements when deploying and using this software.
+
+================================================================================
+HOW TO COMPLY
+================================================================================
+
+To respect all component licenses:
+
+1. Review the license of each dependency in build.gradle
+2. Include proper attribution for all components
+3. Do not remove copyright notices from dependencies
+4. Consult the following resources:
+   - Spring Licenses: https://spring.io/legal
+   - PostgreSQL License: https://www.postgresql.org/about/licence/
+   - OpenRewrite License: https://docs.openrewrite.org/licensing/openrewrite-licensing
+   - Gradle dependency licenses: Use `./gradlew dependencies` to review
+
+================================================================================
+
+For questions about licensing, please open an issue in the project repository.

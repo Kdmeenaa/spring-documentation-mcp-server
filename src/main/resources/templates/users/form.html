@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title th:text="${user.id != null ? 'Edit User - ' + user.username : 'Add New User'} + ' - Spring MCP Server'">
+        User Form - Spring MCP Server
+    </title>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item">
+                        <a th:href="@{/users}" class="text-decoration-none">
+                            <i class="bi bi-people"></i> Users
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page"
+                        th:text="${user.id != null ? 'Edit: ' + user.username : 'New User'}">
+                        New User
+                    </li>
+                </ol>
+            </nav>
+            <h1 class="h2">
+                <i class="bi bi-person-plus text-spring-green"></i>
+                <span th:text="${user.id != null ? 'Edit User' : 'Add New User'}">Add New User</span>
+            </h1>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-spring-green text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-pencil-square"></i>
+                        <span th:text="${user.id != null ? 'User Details' : 'New User Information'}">
+                            User Information
+                        </span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Success/Error Message (before form) -->
+                    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span th:text="${error}">Error message</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <!-- Form -->
+                    <form th:action="${user.id != null ? '/users/' + user.id : '/users'}"
+                          method="post"
+                          th:object="${user}">
+
+                        <!-- Error Messages (inside form with th:object context) -->
+                        <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <strong>Validation Error!</strong> Please correct the errors below.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+
+                        <!-- Global Errors (inside form with th:object context) -->
+                        <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <ul class="mb-0">
+                                <li th:each="err : ${#fields.globalErrors()}" th:text="${err}">Error</li>
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+
+                        <!-- Hidden ID field for edit -->
+                        <input type="hidden" th:if="${user.id != null}" th:field="*{id}">
+
+                        <!-- Username -->
+                        <div class="mb-3">
+                            <label for="username" class="form-label">
+                                Username <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   th:classappend="${#fields.hasErrors('username')} ? 'is-invalid'"
+                                   id="username"
+                                   th:field="*{username}"
+                                   placeholder="e.g., john.doe"
+                                   required
+                                   maxlength="100"
+                                   pattern="[a-zA-Z0-9._-]+"
+                                   title="Username can only contain letters, numbers, dots, underscores, and hyphens">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('username')}">
+                                <span th:errors="*{username}">Username error</span>
+                            </div>
+                            <div class="form-text">Unique username for login. Only letters, numbers, and . _ - allowed</div>
+                        </div>
+
+                        <!-- Display Name -->
+                        <div class="mb-3">
+                            <label for="displayName" class="form-label">Display Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-person-badge"></i>
+                                </span>
+                                <input type="text"
+                                       class="form-control"
+                                       th:classappend="${#fields.hasErrors('displayName')} ? 'is-invalid'"
+                                       id="displayName"
+                                       th:field="*{displayName}"
+                                       placeholder="e.g., John Doe"
+                                       maxlength="100">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('displayName')}">
+                                    <span th:errors="*{displayName}">Display name error</span>
+                                </div>
+                            </div>
+                            <div class="form-text">Optional friendly name shown in the UI instead of the username</div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-envelope"></i>
+                                </span>
+                                <input type="email"
+                                       class="form-control"
+                                       th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"
+                                       id="email"
+                                       th:field="*{email}"
+                                       placeholder="user@example.com"
+                                       maxlength="255">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}">
+                                    <span th:errors="*{email}">Email error</span>
+                                </div>
+                            </div>
+                            <div class="form-text">Optional email address for the user</div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label for="plainPassword" class="form-label">
+                                Password
+                                <span th:if="${isNewUser}" class="text-danger">*</span>
+                                <span th:unless="${isNewUser}" class="text-muted">(leave blank to keep current)</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-key"></i>
+                                </span>
+                                <input type="password"
+                                       class="form-control"
+                                       id="plainPassword"
+                                       name="plainPassword"
+                                       placeholder="Enter password"
+                                       minlength="8"
+                                       th:required="${isNewUser}">
+                            </div>
+                            <div class="form-text">
+                                <span th:if="${isNewUser}">Password must be at least 8 characters</span>
+                                <span th:unless="${isNewUser}">Only enter a new password if you want to change it (min 8 characters)</span>
+                            </div>
+                        </div>
+
+                        <!-- Repeat Password -->
+                        <div class="mb-3">
+                            <label for="repeatPassword" class="form-label">
+                                Repeat Password
+                                <span th:if="${isNewUser}" class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-key-fill"></i>
+                                </span>
+                                <input type="password"
+                                       class="form-control"
+                                       id="repeatPassword"
+                                       name="repeatPassword"
+                                       placeholder="Repeat password"
+                                       minlength="8"
+                                       th:required="${isNewUser}">
+                            </div>
+                            <div class="invalid-feedback" id="passwordMismatch" style="display: none;">
+                                Passwords do not match
+                            </div>
+                            <div class="form-text">
+                                <span th:if="${isNewUser}">Re-enter your password to confirm</span>
+                                <span th:unless="${isNewUser}">Re-enter password if changing it</span>
+                            </div>
+                        </div>
+
+                        <!-- Role -->
+                        <div class="mb-3">
+                            <label for="role" class="form-label">
+                                Role <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select"
+                                    th:classappend="${#fields.hasErrors('role')} ? 'is-invalid'"
+                                    id="role"
+                                    th:field="*{role}"
+                                    required>
+                                <option th:each="r : ${roles}"
+                                        th:value="${r}"
+                                        th:text="${r}"
+                                        th:selected="${user.role == r}">
+                                    Role
+                                </option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('role')}">
+                                <span th:errors="*{role}">Role error</span>
+                            </div>
+                            <div class="form-text">
+                                <strong>ADMIN:</strong> Full access to all features |
+                                <strong>VIEWER:</strong> View-only access (read-only)
+                            </div>
+                        </div>
+
+                        <!-- Active Status -->
+                        <div class="mb-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       id="isActive"
+                                       th:field="*{isActive}"
+                                       checked>
+                                <label class="form-check-label" for="isActive">
+                                    <strong>Active</strong>
+                                </label>
+                            </div>
+                            <div class="form-text ms-4">Only active users can login to the system</div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between align-items-center border-top pt-3">
+                            <a th:href="@{/users}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-spring-green">
+                                <i class="bi bi-check-circle"></i>
+                                <span th:text="${user.id != null ? 'Update User' : 'Create User'}">
+                                    Create User
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Panel -->
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-lightbulb text-spring-green"></i> Tips
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6>Username</h6>
+                    <p class="small">Choose a unique username. It must be alphanumeric and can include dots (.), underscores (_), and hyphens (-).</p>
+
+                    <h6>Display Name</h6>
+                    <p class="small">Optional friendly name displayed in the UI. If set, this will be shown instead of the username in greetings and headers.</p>
+
+                    <h6>Password Security</h6>
+                    <p class="small">Passwords must be at least 8 characters long. Use a combination of letters, numbers, and special characters for better security.</p>
+
+                    <h6>User Roles</h6>
+                    <ul class="small">
+                        <li><strong>ADMIN:</strong> Can manage all aspects of the system including users, projects, versions, and documentation.</li>
+                        <li><strong>VIEWER:</strong> View-only access to the system. Can browse documentation and projects but cannot make any modifications.</li>
+                    </ul>
+
+                    <h6>Enabled Status</h6>
+                    <p class="small">Unchecking "Enabled" will prevent the user from logging in without deleting their account. This is useful for temporary suspensions.</p>
+
+                    <div class="alert alert-warning mt-3" role="alert">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>Security Note:</strong> Be careful when assigning the ADMIN role. Admins have full control over the system.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Examples Card -->
+            <div class="card mt-3">
+                <div class="card-header bg-spring-green text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-card-list"></i> Examples
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Admin User</strong>
+                        <ul class="small mb-0 mt-1">
+                            <li>Username: <code>admin</code></li>
+                            <li>Email: <code>admin@example.com</code></li>
+                            <li>Role: <code>ADMIN</code></li>
+                            <li>Enabled: <code>Yes</code></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <strong>Viewer User</strong>
+                        <ul class="small mb-0 mt-1">
+                            <li>Username: <code>viewer</code></li>
+                            <li>Email: <code>viewer@example.com</code></li>
+                            <li>Role: <code>VIEWER</code></li>
+                            <li>Enabled: <code>Yes</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles and Scripts -->
+<th:block layout:fragment="scripts">
+    <style>
+        .bg-spring-green {
+            background-color: #6db33f;
+        }
+
+        .text-spring-green {
+            color: #6db33f;
+        }
+
+        .btn-spring-green {
+            background-color: #6db33f;
+            border-color: #6db33f;
+            color: white;
+        }
+
+        .btn-spring-green:hover {
+            background-color: #5a9a35;
+            border-color: #5a9a35;
+            color: white;
+        }
+
+        .breadcrumb-item + .breadcrumb-item::before {
+            color: #6c757d;
+        }
+
+        .breadcrumb-item.active {
+            color: #6db33f;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #6db33f;
+            box-shadow: 0 0 0 0.2rem rgba(109, 179, 63, 0.25);
+        }
+
+        .form-check-input:checked {
+            background-color: #6db33f;
+            border-color: #6db33f;
+        }
+
+        .form-check-input:focus {
+            border-color: #6db33f;
+            box-shadow: 0 0 0 0.2rem rgba(109, 179, 63, 0.25);
+        }
+
+        .is-invalid:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+    </style>
+
+    <script>
+        // Form validation and password matching
+        (function() {
+            'use strict'
+            const forms = document.querySelectorAll('form');
+            const password = document.getElementById('plainPassword');
+            const repeatPassword = document.getElementById('repeatPassword');
+            const passwordMismatch = document.getElementById('passwordMismatch');
+
+            // Password match validation
+            if (repeatPassword) {
+                repeatPassword.addEventListener('input', function() {
+                    if (password.value !== repeatPassword.value && repeatPassword.value !== '') {
+                        repeatPassword.classList.add('is-invalid');
+                        passwordMismatch.style.display = 'block';
+                    } else {
+                        repeatPassword.classList.remove('is-invalid');
+                        passwordMismatch.style.display = 'none';
+                    }
+                });
+            }
+
+            // Form submission validation
+            Array.from(forms).forEach(function(form) {
+                form.addEventListener('submit', function(event) {
+                    // Check if passwords match
+                    if (password && repeatPassword && password.value !== repeatPassword.value) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        repeatPassword.classList.add('is-invalid');
+                        passwordMismatch.style.display = 'block';
+                        password.focus();
+                        return false;
+                    }
+
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
+    </script>
+</th:block>
+</body>
+</html>

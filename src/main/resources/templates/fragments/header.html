@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+    <div th:fragment="header" class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" th:href="@{/dashboard}">
+            <i class="bi bi-gear-fill"></i> &nbsp;&nbsp;Spring Boot Documentation MCP Server
+        </a>
+
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button"
+                data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Support Level Indicator (centered) -->
+        <div class="flex-grow-1 d-none d-md-flex justify-content-center align-items-center" sec:authorize="isAuthenticated()">
+            <span th:if="${enterpriseSubscriptionEnabled}" class="badge bg-success px-3 py-2" style="font-size: 0.9rem;">
+                <i class="bi bi-building-check"></i> Enterprise Support
+            </span>
+            <span th:unless="${enterpriseSubscriptionEnabled}" class="badge bg-primary px-3 py-2" style="font-size:
+            0.9rem;">
+                <i class="bi bi-code-square"></i> OSS Support
+            </span>
+        </div>
+
+        <div class="navbar-nav">
+            <div class="nav-item text-nowrap px-3" sec:authorize="isAuthenticated()">
+                <span class="navbar-text me-3" th:text="${currentUserDisplayName}">User</span>
+                <button type="button" class="btn btn-sm btn-outline-warning me-2" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                    <i class="bi bi-key"></i> Change Password
+                </button>
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="btn btn-sm btn-outline-light">Logout</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: spring-mcp-db
+    environment:
+      POSTGRES_DB: spring_mcp
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./.vols/db:/var/lib/postgresql
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Uncomment this section once the application is ready to be containerized
+  # spring-boot-documentation-mcp-server:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: spring-boot-documentation-mcp-server
+  #   environment:
+  #     DB_HOST: postgres
+  #     DB_PORT: 5432
+  #     DB_NAME: spring_mcp
+  #     DB_USER: postgres
+  #     DB_PASSWORD: postgres
+  #     ADMIN_USER: admin
+  #     ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
+  #     SERVER_PORT: 8080
+  #     GITHUB_TOKEN: ${GITHUB_TOKEN:-}  # Optional: GitHub token for 5000 req/hour rate limit
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - spring-mcp-network
+  #   volumes:
+  #     - ./logs:/app/logs
+  #   restart: unless-stopped
+

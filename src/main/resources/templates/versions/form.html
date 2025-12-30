@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title th:text="${version.id != null ? 'Edit Version - ' + version.version : 'Add New Version'} + ' - Spring MCP Server'">
+        Version Form - Spring MCP Server
+    </title>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item">
+                        <a th:href="@{/versions}" class="text-decoration-none">
+                            <i class="bi bi-tags"></i> Versions
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page"
+                        th:text="${version.id != null ? 'Edit: ' + version.version : 'New Version'}">
+                        New Version
+                    </li>
+                </ol>
+            </nav>
+            <h1 class="h2">
+                <i class="bi bi-tag text-spring-green"></i>
+                <span th:text="${version.id != null ? 'Edit Version' : 'Add New Version'}">Add New Version</span>
+            </h1>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-spring-green text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-pencil-square"></i>
+                        <span th:text="${version.id != null ? 'Version Details' : 'New Version Information'}">
+                            Version Information
+                        </span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Error Messages -->
+                    <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <strong>Validation Error!</strong> Please correct the errors below.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <!-- Form -->
+                    <form th:action="${version.id != null ? '/versions/' + version.id : '/versions'}"
+                          method="post"
+                          th:object="${version}">
+
+                        <!-- Hidden ID field for edit -->
+                        <input type="hidden" th:if="${version.id != null}" th:field="*{id}">
+
+                        <!-- Project Selection -->
+                        <div class="mb-3">
+                            <label for="project" class="form-label">
+                                Spring Project <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select"
+                                    th:classappend="${#fields.hasErrors('project')} ? 'is-invalid'"
+                                    id="project"
+                                    th:field="*{project.id}"
+                                    required
+                                    th:disabled="${version.id != null}">
+                                <option value="">-- Select Project --</option>
+                                <option th:each="proj : ${projects}"
+                                        th:value="${proj.id}"
+                                        th:text="${proj.name}"
+                                        th:selected="${version.project != null and version.project.id == proj.id}">
+                                    Project Name
+                                </option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('project')}">
+                                <span th:errors="*{project}">Project error</span>
+                            </div>
+                            <div class="form-text">Select the Spring project for this version</div>
+                        </div>
+
+                        <!-- Version String -->
+                        <div class="mb-3">
+                            <label for="version" class="form-label">
+                                Version String <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   th:classappend="${#fields.hasErrors('version')} ? 'is-invalid'"
+                                   id="version"
+                                   th:field="*{version}"
+                                   placeholder="e.g., 3.5.7"
+                                   required
+                                   maxlength="50">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('version')}">
+                                <span th:errors="*{version}">Version error</span>
+                            </div>
+                            <div class="form-text">Full version string (e.g., "3.5.7", "3.5.0-RC1")</div>
+                        </div>
+
+                        <!-- Version Number Fields -->
+                        <div class="row">
+                            <!-- Major Version -->
+                            <div class="col-md-4 mb-3">
+                                <label for="majorVersion" class="form-label">
+                                    Major Version <span class="text-danger">*</span>
+                                </label>
+                                <input type="number"
+                                       class="form-control"
+                                       th:classappend="${#fields.hasErrors('majorVersion')} ? 'is-invalid'"
+                                       id="majorVersion"
+                                       th:field="*{majorVersion}"
+                                       placeholder="3"
+                                       required
+                                       min="0">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('majorVersion')}">
+                                    <span th:errors="*{majorVersion}">Major version error</span>
+                                </div>
+                            </div>
+
+                            <!-- Minor Version -->
+                            <div class="col-md-4 mb-3">
+                                <label for="minorVersion" class="form-label">
+                                    Minor Version <span class="text-danger">*</span>
+                                </label>
+                                <input type="number"
+                                       class="form-control"
+                                       th:classappend="${#fields.hasErrors('minorVersion')} ? 'is-invalid'"
+                                       id="minorVersion"
+                                       th:field="*{minorVersion}"
+                                       placeholder="5"
+                                       required
+                                       min="0">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('minorVersion')}">
+                                    <span th:errors="*{minorVersion}">Minor version error</span>
+                                </div>
+                            </div>
+
+                            <!-- Patch Version -->
+                            <div class="col-md-4 mb-3">
+                                <label for="patchVersion" class="form-label">Patch Version</label>
+                                <input type="number"
+                                       class="form-control"
+                                       th:classappend="${#fields.hasErrors('patchVersion')} ? 'is-invalid'"
+                                       id="patchVersion"
+                                       th:field="*{patchVersion}"
+                                       placeholder="7"
+                                       min="0">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('patchVersion')}">
+                                    <span th:errors="*{patchVersion}">Patch version error</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Version Type -->
+                        <div class="mb-3">
+                            <label for="versionType" class="form-label">
+                                Version Type <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select"
+                                    th:classappend="${#fields.hasErrors('versionType')} ? 'is-invalid'"
+                                    id="versionType"
+                                    th:field="*{versionType}"
+                                    required>
+                                <option value="">-- Select Type --</option>
+                                <option value="STABLE">STABLE - Stable production release</option>
+                                <option value="RC">RC - Release Candidate</option>
+                                <option value="SNAPSHOT">SNAPSHOT - Development snapshot</option>
+                                <option value="MILESTONE">MILESTONE - Milestone release</option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('versionType')}">
+                                <span th:errors="*{versionType}">Version type error</span>
+                            </div>
+                            <div class="form-text">Select the version release type</div>
+                        </div>
+
+                        <!-- Dates -->
+                        <div class="row">
+                            <!-- Release Date -->
+                            <div class="col-md-4 mb-3">
+                                <label for="releaseDate" class="form-label">Release Date</label>
+                                <input type="date"
+                                       class="form-control"
+                                       th:classappend="${#fields.hasErrors('releaseDate')} ? 'is-invalid'"
+                                       id="releaseDate"
+                                       th:field="*{releaseDate}">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('releaseDate')}">
+                                    <span th:errors="*{releaseDate}">Release date error</span>
+                                </div>
+                                <div class="form-text">Initial release date</div>
+                            </div>
+
+                            <!-- OSS Support End -->
+                            <div class="col-md-4 mb-3">
+                                <label for="ossSupportEnd" class="form-label">OSS Support End</label>
+                                <input type="date"
+                                       class="form-control"
+                                       th:classappend="${#fields.hasErrors('ossSupportEnd')} ? 'is-invalid'"
+                                       id="ossSupportEnd"
+                                       th:field="*{ossSupportEnd}">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('ossSupportEnd')}">
+                                    <span th:errors="*{ossSupportEnd}">OSS support end error</span>
+                                </div>
+                                <div class="form-text">OSS community support end</div>
+                            </div>
+
+                            <!-- Enterprise Support End (EOL) -->
+                            <div class="col-md-4 mb-3">
+                                <label for="enterpriseSupportEnd" class="form-label">Enterprise Support End</label>
+                                <input type="date"
+                                       class="form-control"
+                                       th:classappend="${#fields.hasErrors('enterpriseSupportEnd')} ? 'is-invalid'"
+                                       id="enterpriseSupportEnd"
+                                       th:field="*{enterpriseSupportEnd}">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('enterpriseSupportEnd')}">
+                                    <span th:errors="*{enterpriseSupportEnd}">Enterprise support end error</span>
+                                </div>
+                                <div class="form-text">End of Life (no further updates)</div>
+                            </div>
+                        </div>
+
+                        <!-- Flags -->
+                        <div class="mb-3">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       id="isLatest"
+                                       th:field="*{isLatest}">
+                                <label class="form-check-label" for="isLatest">
+                                    <strong>Latest Version</strong>
+                                </label>
+                            </div>
+                            <div class="form-text ms-4 mt-n2 mb-3">Mark this as the latest version for the project</div>
+
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       id="isDefault"
+                                       th:field="*{isDefault}">
+                                <label class="form-check-label" for="isDefault">
+                                    <strong>Default Version</strong>
+                                </label>
+                            </div>
+                            <div class="form-text ms-4 mt-n2">Use this version as the default for documentation</div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between align-items-center border-top pt-3">
+                            <a th:href="@{/versions}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-spring-green">
+                                <i class="bi bi-check-circle"></i>
+                                <span th:text="${version.id != null ? 'Update Version' : 'Create Version'}">
+                                    Create Version
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Panel -->
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-lightbulb text-spring-green"></i> Tips
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6>Version String</h6>
+                    <p class="small">Use the official version string from spring.io (e.g., "3.5.7", "3.5.0-RC1", "3.6.0-SNAPSHOT")</p>
+
+                    <h6>Version Numbers</h6>
+                    <p class="small">Break down the version into major, minor, and patch components. For example, "3.5.7" = Major: 3, Minor: 5, Patch: 7</p>
+
+                    <h6>Version Types</h6>
+                    <ul class="small">
+                        <li><strong>STABLE:</strong> Production-ready release</li>
+                        <li><strong>RC:</strong> Release candidate for testing</li>
+                        <li><strong>SNAPSHOT:</strong> Development version</li>
+                        <li><strong>MILESTONE:</strong> Feature-complete but not final</li>
+                    </ul>
+
+                    <h6>Flags</h6>
+                    <p class="small">Mark a version as "Latest" if it's the most recent stable release. Mark as "Default" if it should be the primary documentation version.</p>
+
+                    <div class="alert alert-warning mt-3" role="alert">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>Note:</strong> Only one version per project should be marked as "Latest" and "Default" at a time.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Examples Card -->
+            <div class="card mt-3">
+                <div class="card-header bg-spring-green text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-card-list"></i> Examples
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Spring Boot 3.5.7 (STABLE)</strong>
+                        <ul class="small mb-0 mt-1">
+                            <li>Version: <code>3.5.7</code></li>
+                            <li>Major: <code>3</code>, Minor: <code>5</code>, Patch: <code>7</code></li>
+                            <li>Type: <code>STABLE</code></li>
+                        </ul>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Spring Framework 6.2.0-RC1</strong>
+                        <ul class="small mb-0 mt-1">
+                            <li>Version: <code>6.2.0-RC1</code></li>
+                            <li>Major: <code>6</code>, Minor: <code>2</code>, Patch: <code>0</code></li>
+                            <li>Type: <code>RC</code></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <strong>Spring Data 2024.1.0-SNAPSHOT</strong>
+                        <ul class="small mb-0 mt-1">
+                            <li>Version: <code>2024.1.0-SNAPSHOT</code></li>
+                            <li>Major: <code>2024</code>, Minor: <code>1</code>, Patch: <code>0</code></li>
+                            <li>Type: <code>SNAPSHOT</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles and Scripts -->
+<th:block layout:fragment="scripts">
+    <style>
+        .bg-spring-green {
+            background-color: #6db33f;
+        }
+
+        .text-spring-green {
+            color: #6db33f;
+        }
+
+        .btn-spring-green {
+            background-color: #6db33f;
+            border-color: #6db33f;
+            color: white;
+        }
+
+        .btn-spring-green:hover {
+            background-color: #5a9a35;
+            border-color: #5a9a35;
+            color: white;
+        }
+
+        .breadcrumb-item + .breadcrumb-item::before {
+            color: #6c757d;
+        }
+
+        .breadcrumb-item.active {
+            color: #6db33f;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #6db33f;
+            box-shadow: 0 0 0 0.2rem rgba(109, 179, 63, 0.25);
+        }
+
+        .form-check-input:checked {
+            background-color: #6db33f;
+            border-color: #6db33f;
+        }
+
+        .form-check-input:focus {
+            border-color: #6db33f;
+            box-shadow: 0 0 0 0.2rem rgba(109, 179, 63, 0.25);
+        }
+
+        .is-invalid:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+    </style>
+
+    <script>
+        // Auto-populate version string from version numbers
+        document.addEventListener('DOMContentLoaded', function() {
+            const majorInput = document.getElementById('majorVersion');
+            const minorInput = document.getElementById('minorVersion');
+            const patchInput = document.getElementById('patchVersion');
+            const versionInput = document.getElementById('version');
+            const versionTypeSelect = document.getElementById('versionType');
+
+            function updateVersionString() {
+                const major = majorInput.value;
+                const minor = minorInput.value;
+                const patch = patchInput.value || '0';
+                const type = versionTypeSelect.value;
+
+                if (major && minor) {
+                    let version = `${major}.${minor}.${patch}`;
+
+                    if (type && type !== 'STABLE') {
+                        // For non-stable versions, you might want to append the type
+                        // version += `-${type}`;
+                    }
+
+                    // Only update if version field is empty or has been auto-generated
+                    if (versionInput.value === '' || versionInput.dataset.autoGenerated === 'true') {
+                        versionInput.value = version;
+                        versionInput.dataset.autoGenerated = 'true';
+                    }
+                }
+            }
+
+            majorInput.addEventListener('input', updateVersionString);
+            minorInput.addEventListener('input', updateVersionString);
+            patchInput.addEventListener('input', updateVersionString);
+            versionTypeSelect.addEventListener('change', updateVersionString);
+
+            // Mark as manually edited if user types in version field
+            versionInput.addEventListener('input', function() {
+                delete versionInput.dataset.autoGenerated;
+            });
+        });
+
+        // Form validation
+        (function() {
+            'use strict'
+            const forms = document.querySelectorAll('form');
+            Array.from(forms).forEach(function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
+    </script>
+</th:block>
+</body>
+</html>

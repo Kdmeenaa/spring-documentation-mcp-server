@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Spring Documentation MCP Server</title>
+
+    <!-- Bootstrap 5 CSS (local) -->
+    <link th:href="@{/vendor/bootstrap/bootstrap.min.css}" rel="stylesheet">
+
+    <!-- Bootstrap Icons (local) -->
+    <link th:href="@{/vendor/bootstrap-icons/bootstrap-icons.min.css}" rel="stylesheet">
+
+    <style>
+        :root {
+            --spring-green: #6db33f;
+            --spring-green-dark: #5a9c34;
+            --spring-green-light: #7ec143;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8f5e9 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .login-container {
+            max-width: 440px;
+            margin: auto;
+        }
+
+        .login-card {
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, var(--spring-green) 0%, var(--spring-green-dark) 100%);
+            padding: 2rem;
+            text-align: center;
+            color: white;
+        }
+
+        .spring-logo {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: var(--spring-green);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-header h2 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.75rem;
+        }
+
+        .login-header p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.95;
+            font-size: 0.95rem;
+        }
+
+        .login-body {
+            padding: 2.5rem 2rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-icon {
+            background-color: #f8f9fa;
+            border-right: none;
+            color: #6c757d;
+        }
+
+        .form-control {
+            border-left: none;
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--spring-green);
+            box-shadow: 0 0 0 0.25rem rgba(109, 179, 63, 0.15);
+        }
+
+        .input-group .form-control:focus + .input-icon {
+            border-color: var(--spring-green);
+        }
+
+        .btn-spring {
+            background: linear-gradient(135deg, var(--spring-green) 0%, var(--spring-green-dark) 100%);
+            border: none;
+            color: white;
+            padding: 0.85rem;
+            font-weight: 600;
+            font-size: 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-spring:hover {
+            background: linear-gradient(135deg, var(--spring-green-dark) 0%, #4a8029 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(109, 179, 63, 0.3);
+        }
+
+        .btn-spring:active {
+            transform: translateY(0);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--spring-green);
+            border-color: var(--spring-green);
+        }
+
+        .form-check-input:focus {
+            border-color: var(--spring-green);
+            box-shadow: 0 0 0 0.25rem rgba(109, 179, 63, 0.15);
+        }
+
+        .alert {
+            border-radius: 8px;
+            border: none;
+            font-size: 0.9rem;
+        }
+
+        .alert-danger {
+            background-color: #fee;
+            color: #c33;
+        }
+
+        .alert-success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .login-footer {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.85rem;
+        }
+
+        .login-footer code {
+            background-color: #e9ecef;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container login-container">
+        <div class="card login-card">
+            <!-- Header with Logo -->
+            <div class="login-header">
+                <div class="spring-logo">
+                    <i class="bi bi-leaf"></i>
+                </div>
+                <h2>Spring Documentation</h2>
+                <h3>MCP Server</h3>
+                <p>Model Context Protocol Documentation Server</p>
+            </div>
+
+            <!-- Login Form -->
+            <div class="login-body">
+                <!-- Login Error -->
+                <div th:if="${param.error}" class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <div>Invalid username or password.</div>
+                </div>
+
+                <!-- Logout Success -->
+                <div th:if="${param.logout}" class="alert alert-success d-flex align-items-center" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    <div>You have been logged out successfully.</div>
+                </div>
+
+                <!-- Login Form -->
+                <form th:action="@{/login}" method="post">
+                    <!-- Username Input -->
+                    <div class="mb-3">
+                        <label for="username" class="form-label">
+                            <i class="bi bi-person-circle"></i> Username
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text input-icon">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            <input type="text"
+                                   class="form-control"
+                                   id="username"
+                                   name="username"
+                                   placeholder="Enter your username"
+                                   required
+                                   autofocus
+                                   autocomplete="username">
+                        </div>
+                    </div>
+
+                    <!-- Password Input -->
+                    <div class="mb-3">
+                        <label for="password" class="form-label">
+                            <i class="bi bi-lock-fill"></i> Password
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text input-icon">
+                                <i class="bi bi-key"></i>
+                            </span>
+                            <input type="password"
+                                   class="form-control"
+                                   id="password"
+                                   name="password"
+                                   placeholder="Enter your password"
+                                   required
+                                   autocomplete="current-password">
+                        </div>
+                    </div>
+
+                    <!-- Remember Me Checkbox -->
+                    <div class="mb-4 form-check">
+                        <input type="checkbox"
+                               class="form-check-input"
+                               id="remember-me"
+                               name="remember-me">
+                        <label class="form-check-label" for="remember-me">
+                            Remember me on this device
+                        </label>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-spring btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="login-footer">
+                <i class="bi bi-info-circle me-1"></i>
+                Default credentials: <code>admin / admin</code>
+            </div>
+        </div>
+
+        <!-- Additional Info -->
+        <div class="text-center mt-4">
+            <p class="text-muted small">
+                <i class="bi bi-shield-check"></i>
+                Secured with Spring Security
+            </p>
+        </div>
+    </div>
+
+    <script th:src="@{/vendor/bootstrap/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

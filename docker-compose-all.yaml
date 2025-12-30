@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: spring-mcp-db
+    environment:
+      POSTGRES_DB: spring_mcp
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./.vols/db:/var/lib/postgresql
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - spring-mcp-network
+    restart: unless-stopped
+
+  spring-boot-documentation-mcp-server:
+    image: spring-boot-documentation-mcp-server:1.5.4
+    container_name: spring-boot-documentation-mcp-server
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: spring_mcp
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      ADMIN_USER: admin
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
+      SERVER_PORT: 8080
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}  # Optional: GitHub token for 5000 req/hour rate limit
+    ports:
+      - "8888:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - spring-mcp-network
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+
+networks:
+  spring-mcp-network:
+    driver: bridge

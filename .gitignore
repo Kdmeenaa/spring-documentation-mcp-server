@@ -1,0 +1,71 @@
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### macOS ###
+.DS_Store
+
+### Logs ###
+logs/
+*.log
+
+### Application specific ###
+/data/
+/postgres_data/
+.env
+.env.local
+playground/
+IMPLEMENTATION.md
+docs/IMPLEMENTATION_JAVADOCS.md
+
+### AI
+PHASE*.md
+docs/CRAWLER_DESIGN.md
+CLAUDE.md
+.claude/
+.auto-claude/
+docs/
+.vols/
+.fastRequest/
+/mcp.md
+.mcp.json
+start.sh
+
+
+/prompts/
+/node_modules/
+/docs/IMPLEMENTATION_INITIALIZR.md

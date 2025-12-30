@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title th:text="${example.id != null ? 'Edit Code Example - ' + example.title : 'Add New Code Example'} + ' - Spring MCP Server'">
+        Code Example Form - Spring MCP Server
+    </title>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item">
+                        <a th:href="@{/examples}" class="text-decoration-none">
+                            <i class="bi bi-code-square"></i> Code Examples
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page"
+                        th:text="${example.id != null ? 'Edit: ' + example.title : 'New Code Example'}">
+                        New Code Example
+                    </li>
+                </ol>
+            </nav>
+            <h1 class="h2">
+                <i class="bi bi-file-earmark-code text-spring-green"></i>
+                <span th:text="${example.id != null ? 'Edit Code Example' : 'Add New Code Example'}">Add New Code Example</span>
+            </h1>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-spring-green text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-pencil-square"></i>
+                        <span th:text="${example.id != null ? 'Code Example Details' : 'New Code Example Information'}">
+                            Code Example Information
+                        </span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Error Messages -->
+                    <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <strong>Validation Error!</strong> Please correct the errors below.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <!-- Success Message -->
+                    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span th:text="${error}">Error message</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <!-- Form -->
+                    <form th:action="${example.id != null ? '/examples/' + example.id : '/examples'}"
+                          method="post"
+                          th:object="${example}">
+
+                        <!-- Hidden ID field for edit -->
+                        <input type="hidden" th:if="${example.id != null}" th:field="*{id}">
+
+                        <!-- Version Selection -->
+                        <div class="mb-3">
+                            <label for="version" class="form-label">
+                                Project Version <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select"
+                                    th:classappend="${#fields.hasErrors('version')} ? 'is-invalid'"
+                                    id="version"
+                                    th:field="*{version.id}"
+                                    required>
+                                <option value="">-- Select Version --</option>
+                                <optgroup th:each="project : ${projects}" th:label="${project.name}">
+                                    <option th:each="ver : ${project.versions}"
+                                            th:value="${ver.id}"
+                                            th:text="${ver.version}"
+                                            th:selected="${example.version != null and example.version.id == ver.id}">
+                                        Version
+                                    </option>
+                                </optgroup>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('version')}">
+                                <span th:errors="*{version}">Version error</span>
+                            </div>
+                            <div class="form-text">Select the project version this code example applies to</div>
+                        </div>
+
+                        <!-- Title -->
+                        <div class="mb-3">
+                            <label for="title" class="form-label">
+                                Title <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'"
+                                   id="title"
+                                   th:field="*{title}"
+                                   placeholder="e.g., Creating a REST Controller"
+                                   required
+                                   maxlength="255">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('title')}">
+                                <span th:errors="*{title}">Title error</span>
+                            </div>
+                            <div class="form-text">A descriptive title for this code example</div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control"
+                                      th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"
+                                      id="description"
+                                      th:field="*{description}"
+                                      rows="3"
+                                      placeholder="Brief description of what this code example demonstrates..."></textarea>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('description')}">
+                                <span th:errors="*{description}">Description error</span>
+                            </div>
+                            <div class="form-text">A brief description of the code example</div>
+                        </div>
+
+                        <!-- Code Snippet -->
+                        <div class="mb-3">
+                            <label for="codeSnippet" class="form-label">
+                                Code Snippet <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control font-monospace"
+                                      th:classappend="${#fields.hasErrors('codeSnippet')} ? 'is-invalid'"
+                                      id="codeSnippet"
+                                      th:field="*{codeSnippet}"
+                                      rows="15"
+                                      placeholder="@RestController&#10;@RequestMapping(&quot;/api&quot;)&#10;public class ExampleController {&#10;    // Your code here&#10;}"
+                                      required
+                                      style="font-size: 0.875rem;"></textarea>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('codeSnippet')}">
+                                <span th:errors="*{codeSnippet}">Code snippet error</span>
+                            </div>
+                            <div class="form-text">The actual code snippet</div>
+                        </div>
+
+                        <!-- Language -->
+                        <div class="mb-3">
+                            <label for="language" class="form-label">
+                                Programming Language <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select"
+                                    th:classappend="${#fields.hasErrors('language')} ? 'is-invalid'"
+                                    id="language"
+                                    th:field="*{language}"
+                                    required>
+                                <option value="java">Java</option>
+                                <option value="kotlin">Kotlin</option>
+                                <option value="groovy">Groovy</option>
+                                <option value="xml">XML</option>
+                                <option value="yaml">YAML</option>
+                                <option value="properties">Properties</option>
+                                <option value="sql">SQL</option>
+                                <option value="javascript">JavaScript</option>
+                                <option value="typescript">TypeScript</option>
+                                <option value="shell">Shell</option>
+                                <option value="gradle">Gradle</option>
+                                <option value="maven">Maven</option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('language')}">
+                                <span th:errors="*{language}">Language error</span>
+                            </div>
+                            <div class="form-text">Select the programming language used in the code snippet</div>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <input type="text"
+                                   class="form-control"
+                                   th:classappend="${#fields.hasErrors('category')} ? 'is-invalid'"
+                                   id="category"
+                                   th:field="*{category}"
+                                   placeholder="e.g., REST APIs, Data Access, Security"
+                                   maxlength="100">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('category')}">
+                                <span th:errors="*{category}">Category error</span>
+                            </div>
+                            <div class="form-text">Optional category to organize examples</div>
+                        </div>
+
+                        <!-- Tags -->
+                        <div class="mb-3">
+                            <label for="tags" class="form-label">Tags</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="tags"
+                                   th:value="${example.tags != null ? #strings.arrayJoin(example.tags, ', ') : ''}"
+                                   name="tagsInput"
+                                   placeholder="e.g., rest, controller, spring-boot">
+                            <input type="hidden" th:field="*{tags}" id="tagsHidden">
+                            <div class="form-text">Comma-separated tags for easier searching (e.g., rest, api, json)</div>
+                        </div>
+
+                        <!-- Source URL -->
+                        <div class="mb-3">
+                            <label for="sourceUrl" class="form-label">Source URL</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-link-45deg"></i>
+                                </span>
+                                <input type="url"
+                                       class="form-control"
+                                       th:classappend="${#fields.hasErrors('sourceUrl')} ? 'is-invalid'"
+                                       id="sourceUrl"
+                                       th:field="*{sourceUrl}"
+                                       placeholder="https://github.com/spring-projects/spring-boot/..."
+                                       maxlength="500">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('sourceUrl')}">
+                                    <span th:errors="*{sourceUrl}">Source URL error</span>
+                                </div>
+                            </div>
+                            <div class="form-text">Optional URL to the original source of this code example</div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between align-items-center border-top pt-3">
+                            <a th:href="@{/examples}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-spring-green">
+                                <i class="bi bi-check-circle"></i>
+                                <span th:text="${example.id != null ? 'Update Code Example' : 'Create Code Example'}">
+                                    Create Code Example
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Panel -->
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-lightbulb text-spring-green"></i> Tips
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6>Project Version</h6>
+                    <p class="small">Select the specific project version this code example applies to.</p>
+
+                    <h6>Code Snippet</h6>
+                    <p class="small">Paste your code example here. Use proper indentation and formatting for better readability.</p>
+
+                    <h6>Language</h6>
+                    <p class="small">Select the appropriate programming language. This helps with syntax highlighting and categorization.</p>
+
+                    <h6>Tags</h6>
+                    <p class="small">Add relevant tags separated by commas. Tags make it easier to find related examples. Example: <code>rest, json, api</code></p>
+
+                    <h6>Category</h6>
+                    <p class="small">Common categories:</p>
+                    <ul class="small mb-0">
+                        <li>REST APIs</li>
+                        <li>Data Access</li>
+                        <li>Security</li>
+                        <li>Configuration</li>
+                        <li>Testing</li>
+                    </ul>
+
+                    <div class="alert alert-info mt-3" role="alert">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Note:</strong> Code examples are searchable by title, tags, category, and language. Use descriptive titles and relevant tags for better discoverability.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Examples Card -->
+            <div class="card mt-3">
+                <div class="card-header bg-spring-green text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-card-list"></i> Example Tags
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small mb-2"><strong>Popular Tags:</strong></p>
+                    <div class="d-flex flex-wrap gap-1">
+                        <span class="badge bg-secondary">rest</span>
+                        <span class="badge bg-secondary">controller</span>
+                        <span class="badge bg-secondary">service</span>
+                        <span class="badge bg-secondary">repository</span>
+                        <span class="badge bg-secondary">configuration</span>
+                        <span class="badge bg-secondary">security</span>
+                        <span class="badge bg-secondary">testing</span>
+                        <span class="badge bg-secondary">jpa</span>
+                        <span class="badge bg-secondary">validation</span>
+                        <span class="badge bg-secondary">web</span>
+                    </div>
+                    <hr>
+                    <p class="small mb-2 mt-3"><strong>Example:</strong></p>
+                    <ul class="small mb-0">
+                        <li>Title: <code>Creating a REST Controller</code></li>
+                        <li>Language: <code>Java</code></li>
+                        <li>Category: <code>REST APIs</code></li>
+                        <li>Tags: <code>rest, controller, spring-boot</code></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles and Scripts -->
+<th:block layout:fragment="scripts">
+    <style>
+        .bg-spring-green {
+            background-color: #6db33f;
+        }
+
+        .text-spring-green {
+            color: #6db33f;
+        }
+
+        .btn-spring-green {
+            background-color: #6db33f;
+            border-color: #6db33f;
+            color: white;
+        }
+
+        .btn-spring-green:hover {
+            background-color: #5a9a35;
+            border-color: #5a9a35;
+            color: white;
+        }
+
+        .breadcrumb-item + .breadcrumb-item::before {
+            color: #6c757d;
+        }
+
+        .breadcrumb-item.active {
+            color: #6db33f;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #6db33f;
+            box-shadow: 0 0 0 0.2rem rgba(109, 179, 63, 0.25);
+        }
+
+        .is-invalid:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+
+        #codeSnippet {
+            resize: vertical;
+        }
+
+        .font-monospace {
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+
+    <script>
+        // Form validation
+        (function() {
+            'use strict'
+            const forms = document.querySelectorAll('form');
+            Array.from(forms).forEach(function(form) {
+                form.addEventListener('submit', function(event) {
+                    // Convert tags input to array before submit
+                    const tagsInput = document.getElementById('tags');
+                    const tagsHidden = document.getElementById('tagsHidden');
+                    if (tagsInput && tagsHidden) {
+                        const tagsValue = tagsInput.value.trim();
+                        if (tagsValue) {
+                            // Split by comma and trim each tag
+                            const tagsArray = tagsValue.split(',').map(t => t.trim()).filter(t => t.length > 0);
+                            // Store as comma-separated string for Spring to handle as array
+                            tagsHidden.value = tagsArray.join(',');
+                        } else {
+                            tagsHidden.value = '';
+                        }
+                    }
+
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
+    </script>
+</th:block>
+</body>
+</html>

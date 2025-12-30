@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Spring MCP Server</title>
+
+    <!-- Bootstrap 5 CSS (local) -->
+    <link th:href="@{/vendor/bootstrap/bootstrap.min.css}" rel="stylesheet">
+
+    <!-- Bootstrap Icons (local) -->
+    <link th:href="@{/vendor/bootstrap-icons/bootstrap-icons.min.css}" rel="stylesheet">
+
+    <style>
+        body {
+            background: #6db33f;
+            background: linear-gradient(135deg, #6db33f 0%, #5a9a35 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .login-container {
+            max-width: 450px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border: none;
+            overflow: hidden;
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #6db33f 0%, #5a9a35 100%);
+            color: white;
+            padding: 2.5rem 2rem 2rem;
+            text-align: center;
+            border-bottom: 4px solid #4d8029;
+        }
+
+        .login-header h2 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1.75rem;
+        }
+
+        .login-header p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: 1rem;
+        }
+
+        .login-body {
+            padding: 2.5rem 2rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: #6db33f;
+            box-shadow: 0 0 0 0.2rem rgba(109, 179, 63, 0.15);
+        }
+
+        .btn-spring {
+            background: linear-gradient(135deg, #6db33f 0%, #5a9a35 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 0.875rem 1.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            color: white;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(109, 179, 63, 0.3);
+        }
+
+        .btn-spring:hover {
+            background: linear-gradient(135deg, #5a9a35 0%, #4d8029 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(109, 179, 63, 0.4);
+            color: white;
+        }
+
+        .btn-spring:active {
+            transform: translateY(0);
+        }
+
+        .alert {
+            border-radius: 8px;
+            border: none;
+        }
+
+        .login-footer {
+            background: #f8f9fa;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            border-top: 1px solid #e1e8ed;
+        }
+
+        .form-check-input:checked {
+            background-color: #6db33f;
+            border-color: #6db33f;
+        }
+
+        .spring-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container login-container">
+        <div class="card login-card">
+            <!-- Login Header -->
+            <div class="login-header">
+                <i class="bi bi-gear-fill spring-icon"></i>
+                <h2>Spring Documentation</h2>
+                <h3>MCP Server</h3>
+                <p>Model Context Protocol Server for Spring Ecosystem</p>
+                <small class="d-block mt-2" style="opacity: 0.8; font-size: 0.75rem;" th:text="'v' + ${appVersion}">v1.4.3</small>
+            </div>
+
+            <!-- Login Body -->
+            <div class="login-body">
+                <!-- Login Error -->
+                <div th:if="${param.error}" class="alert alert-danger mb-4">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    Invalid username or password.
+                </div>
+
+                <!-- Logout Success -->
+                <div th:if="${param.logout}" class="alert alert-success mb-4">
+                    <i class="bi bi-check-circle me-2"></i>
+                    You have been logged out successfully.
+                </div>
+
+                <!-- Login Form -->
+                <form th:action="@{/login}" method="post">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">
+                            <i class="bi bi-person-circle me-1"></i> Username
+                        </label>
+                        <input type="text" class="form-control" id="username" name="username"
+                               placeholder="Enter your username" required autofocus>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">
+                            <i class="bi bi-lock-fill me-1"></i> Password
+                        </label>
+                        <input type="password" class="form-control" id="password" name="password"
+                               placeholder="Enter your password" required>
+                    </div>
+
+                    <div class="mb-4 form-check">
+                        <input type="checkbox" class="form-check-input" id="remember-me" name="remember-me">
+                        <label class="form-check-label" for="remember-me">
+                            Keep me signed in
+                        </label>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-spring btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Login Footer -->
+            <div class="login-footer">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Default credentials: <strong>admin</strong> / <strong>admin</strong>
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/vendor/bootstrap/bootstrap.bundle.min.js}"></script>
+
+    <!-- Reset sidebar state on login page (ensures expanded menu after fresh login) -->
+    <script>
+        localStorage.removeItem('spring-mcp-sidebar-collapsed');
+    </script>
+</body>
+</html>

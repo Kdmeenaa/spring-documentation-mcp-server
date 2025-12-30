@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <title th:text="${pageTitle} ?: 'Spring MCP Server'">Spring MCP Server</title>
+
+    <!-- Bootstrap 5 CSS (local) -->
+    <link th:href="@{/vendor/bootstrap/bootstrap.min.css}" rel="stylesheet">
+
+    <!-- Bootstrap Icons (local) -->
+    <link th:href="@{/vendor/bootstrap-icons/bootstrap-icons.min.css}" rel="stylesheet">
+
+    <!-- Spring MCP CSS -->
+    <link th:href="@{/css/spring-mcp.css}" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link th:href="@{/css/custom.css}" rel="stylesheet">
+
+    <!-- Early sidebar state application to prevent flicker -->
+    <script>
+        (function() {
+            var isCollapsed = localStorage.getItem('spring-mcp-sidebar-collapsed') === 'true';
+            if (isCollapsed) {
+                document.documentElement.classList.add('sidebar-is-collapsed');
+            }
+        })();
+    </script>
+    <style>
+        /* Apply collapsed state immediately via CSS when class is on html element */
+        .sidebar-is-collapsed .sidebar {
+            width: 60px !important;
+            min-width: 60px !important;
+            max-width: 60px !important;
+        }
+        .sidebar-is-collapsed .sidebar .nav-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+            display: none;
+        }
+        .sidebar-is-collapsed .sidebar .nav-link {
+            justify-content: center;
+            padding: 0.75rem 0.5rem;
+        }
+        .sidebar-is-collapsed .sidebar .nav-link i {
+            margin-right: 0;
+            font-size: 1.1rem;
+        }
+        .sidebar-is-collapsed .sidebar .sidebar-toggle-container {
+            justify-content: center;
+            padding: 0.5rem 0.25rem;
+        }
+        .sidebar-is-collapsed .sidebar .sidebar-toggle-btn i {
+            transform: rotate(180deg);
+        }
+        .sidebar-is-collapsed main {
+            flex: 0 0 calc(100% - 60px) !important;
+            max-width: calc(100% - 60px) !important;
+            width: calc(100% - 60px) !important;
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- Navigation -->
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <!-- Main Content -->
+    <div class="container-fluid flex-grow-1">
+        <div class="row h-100">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-md-block sidebar">
+                <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+            </nav>
+
+            <!-- Main Content Area -->
+            <main class="col-md-10 ms-sm-auto px-md-4 py-4">
+                <!-- Alerts -->
+                <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+                <!-- Page Content -->
+                <div layout:fragment="content">
+                    <!-- Content will be inserted here -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <!-- Bootstrap 5 JS Bundle (local) -->
+    <script th:src="@{/vendor/bootstrap/bootstrap.bundle.min.js}"></script>
+
+    <!-- Alpine.js (local) -->
+    <script th:src="@{/vendor/alpinejs/alpine.min.js}" defer></script>
+
+    <!-- HTMX (local) -->
+    <script th:src="@{/vendor/htmx/htmx.min.js}"></script>
+
+    <!-- Custom JS -->
+    <script th:src="@{/js/app.js}"></script>
+
+    <!-- Page-specific scripts -->
+    <th:block layout:fragment="scripts"></th:block>
+
+    <!-- Change Password Modal (for authenticated users) -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true" sec:authorize="isAuthenticated()">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="changePasswordModalLabel">
+                        <i class="bi bi-key-fill text-warning"></i> Change Password
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="changePasswordForm">
+                    <div class="modal-body">
+                        <!-- Alert container for messages -->
+                        <div id="passwordChangeAlert" class="alert d-none" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label for="currentPassword" class="form-label">Current Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-secondary border-secondary">
+                                    <i class="bi bi-lock text-light"></i>
+                                </span>
+                                <input type="password" class="form-control bg-dark text-light border-secondary"
+                                       id="currentPassword" name="currentPassword" required
+                                       placeholder="Enter your current password">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">New Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-secondary border-secondary">
+                                    <i class="bi bi-key text-light"></i>
+                                </span>
+                                <input type="password" class="form-control bg-dark text-light border-secondary"
+                                       id="newPassword" name="newPassword" required minlength="8"
+                                       placeholder="Enter new password (min 8 characters)">
+                            </div>
+                            <div class="form-text text-muted">Password must be at least 8 characters long.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-secondary border-secondary">
+                                    <i class="bi bi-key-fill text-light"></i>
+                                </span>
+                                <input type="password" class="form-control bg-dark text-light border-secondary"
+                                       id="confirmPassword" name="confirmPassword" required minlength="8"
+                                       placeholder="Confirm new password">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-lg"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-warning" id="savePasswordBtn">
+                            <i class="bi bi-check-lg"></i> Save Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Script -->
+    <script sec:authorize="isAuthenticated()">
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('changePasswordForm');
+            const alertDiv = document.getElementById('passwordChangeAlert');
+            const modal = document.getElementById('changePasswordModal');
+
+            if (form && modal) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const currentPassword = document.getElementById('currentPassword').value;
+                    const newPassword = document.getElementById('newPassword').value;
+                    const confirmPassword = document.getElementById('confirmPassword').value;
+
+                    // Clear previous alerts
+                    alertDiv.classList.add('d-none');
+                    alertDiv.classList.remove('alert-danger', 'alert-success');
+
+                    // Validate passwords match
+                    if (newPassword !== confirmPassword) {
+                        showAlert('New passwords do not match.', 'danger');
+                        return;
+                    }
+
+                    // Validate password length
+                    if (newPassword.length < 8) {
+                        showAlert('New password must be at least 8 characters long.', 'danger');
+                        return;
+                    }
+
+                    // Get CSRF token from meta tag
+                    const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+                    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+                    // Submit via AJAX
+                    fetch('/account/change-password', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            [csrfHeader]: csrfToken
+                        },
+                        body: new URLSearchParams({
+                            'currentPassword': currentPassword,
+                            'newPassword': newPassword,
+                            'confirmPassword': confirmPassword
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showAlert(data.message, 'success');
+                            // Clear form
+                            form.reset();
+                            // Close modal after 2 seconds
+                            setTimeout(function() {
+                                var bsModal = bootstrap.Modal.getInstance(modal);
+                                if (bsModal) bsModal.hide();
+                            }, 2000);
+                        } else {
+                            showAlert(data.message, 'danger');
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error('Error:', error);
+                        showAlert('An error occurred. Please try again.', 'danger');
+                    });
+                });
+
+                // Clear form when modal is closed
+                modal.addEventListener('hidden.bs.modal', function() {
+                    form.reset();
+                    alertDiv.classList.add('d-none');
+                });
+            }
+
+            function showAlert(message, type) {
+                alertDiv.textContent = message;
+                alertDiv.classList.remove('d-none', 'alert-danger', 'alert-success');
+                alertDiv.classList.add('alert-' + type);
+            }
+        });
+    </script>
+</body>
+</html>

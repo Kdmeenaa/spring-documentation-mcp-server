@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title>Users & Flavor Groups - Spring MCP Server</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="bi bi-people-fill text-spring-green"></i>
+            Users & Flavor Groups
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a th:href="@{/users/new}" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-circle"></i> Add User
+            </a>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs mb-4" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" th:href="@{/users}">
+                <i class="bi bi-person me-1"></i> Users
+            </a>
+        </li>
+        <li class="nav-item" th:if="${flavorsEnabled}">
+            <a class="nav-link" th:href="@{/groups}">
+                <i class="bi bi-collection me-1" style="color: #a78bfa;"></i> Flavor Groups
+            </a>
+        </li>
+    </ul>
+
+    <!-- Empty State -->
+    <div th:if="${#lists.isEmpty(users)}" class="text-center py-5">
+        <div class="mb-4">
+            <i class="bi bi-person-x display-1 text-muted"></i>
+        </div>
+        <h3 class="text-muted mb-3">No Users Found</h3>
+        <p class="text-muted mb-4">
+            No users have been created yet. Create your first user to get started.
+        </p>
+        <a th:href="@{/users/new}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add First User
+        </a>
+    </div>
+
+    <!-- Users List -->
+    <div th:if="${!#lists.isEmpty(users)}">
+        <!-- Desktop View (Table) -->
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" style="width: 5%;">
+                                    <i class="bi bi-person text-spring-green"></i>
+                                </th>
+                                <th scope="col" style="width: 15%;">Username</th>
+                                <th scope="col" style="width: 15%;">Display Name</th>
+                                <th scope="col" style="width: 20%;">Email</th>
+                                <th scope="col" style="width: 12%;">Role</th>
+                                <th scope="col" style="width: 10%;" class="text-center">Status</th>
+                                <th scope="col" style="width: 13%;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="user : ${users}">
+                                <td class="align-middle">
+                                    <div class="user-icon bg-spring-green-light text-spring-green rounded-circle d-flex align-items-center justify-content-center"
+                                         style="width: 40px; height: 40px;">
+                                        <i class="bi bi-person fs-5"></i>
+                                    </div>
+                                </td>
+                                <td class="align-middle">
+                                    <a th:href="@{/users/{id}(id=${user.id})}"
+                                       class="text-decoration-none fw-semibold"
+                                       th:text="${user.username}">
+                                        admin
+                                    </a>
+                                </td>
+                                <td class="align-middle">
+                                    <span th:if="${user.displayName != null and !user.displayName.isBlank()}"
+                                          th:text="${user.displayName}">John Doe</span>
+                                    <span th:if="${user.displayName == null or user.displayName.isBlank()}"
+                                          class="text-muted fst-italic">—</span>
+                                </td>
+                                <td class="align-middle">
+                                    <span th:text="${user.email ?: 'N/A'}">admin@springmcp.local</span>
+                                </td>
+                                <td class="align-middle">
+                                    <span class="badge"
+                                          th:classappend="${user.role.name() == 'ADMIN'} ? 'bg-danger' : 'bg-secondary'"
+                                          th:text="${user.role}">ADMIN</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span th:if="${user.isActive}" class="badge bg-success">
+                                        <i class="bi bi-check-circle"></i> Active
+                                    </span>
+                                    <span th:unless="${user.isActive}" class="badge bg-secondary">
+                                        <i class="bi bi-x-circle"></i> Inactive
+                                    </span>
+                                </td>
+                                <td class="align-middle">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a th:href="@{/users/{id}(id=${user.id})}"
+                                           class="btn btn-outline-primary"
+                                           title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a th:href="@{/users/{id}/edit(id=${user.id})}"
+                                           class="btn btn-outline-secondary"
+                                           title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Summary -->
+        <div class="mt-3 text-muted">
+            <small>
+                Showing <span th:text="${#lists.size(users)}">0</span> user(s)
+            </small>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles -->
+<th:block layout:fragment="scripts">
+    <style>
+        .bg-spring-green {
+            background-color: #6db33f;
+        }
+
+        .bg-spring-green-light {
+            background-color: rgba(109, 179, 63, 0.1);
+        }
+
+        .text-spring-green {
+            color: #6db33f;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(109, 179, 63, 0.05);
+        }
+
+        .user-icon {
+            transition: all 0.3s ease;
+        }
+
+        tr:hover .user-icon {
+            transform: scale(1.1);
+        }
+    </style>
+</th:block>
+</body>
+</html>

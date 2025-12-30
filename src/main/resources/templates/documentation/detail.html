@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Documentation Details</title>
+</head>
+<body>
+<th:block th:replace="~{layout/base :: content(pageTitle='Documentation Details')}">
+    <div>
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a th:href="@{/dashboard}">
+                        <i class="bi bi-house"></i> Home
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{/documentation}">Documentation</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page" th:text="${doc.title}">
+                    Documentation Title
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Documentation Details Card -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-text-fill text-spring-green"></i>
+                        Documentation Information
+                    </h5>
+                    <div class="btn-group btn-group-sm" sec:authorize="hasAnyRole('ADMIN', 'USER')">
+                        <button type="button"
+                                class="btn btn-success"
+                                title="Refresh Content"
+                                onclick="refreshContent()">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                        <a th:href="@{/documentation/{id}/edit(id=${doc.id})}" class="btn btn-primary">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        <button type="button"
+                                class="btn btn-danger"
+                                sec:authorize="hasRole('ADMIN')"
+                                th:onclick="|if(confirmAction('Delete this documentation link?')) { document.getElementById('delete-form').submit(); }|">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="row">
+                    <!-- Left Column -->
+                    <div class="col-md-6">
+                        <!-- Title -->
+                        <div class="mb-4">
+                            <label class="text-muted small text-uppercase fw-bold">Title</label>
+                            <div class="mt-1">
+                                <h4 th:text="${doc.title}">Documentation Title</h4>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-4" th:if="${doc.description}">
+                            <label class="text-muted small text-uppercase fw-bold">Description</label>
+                            <div class="mt-1">
+                                <p class="mb-0" th:text="${doc.description}">
+                                    Documentation description goes here...
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- URL -->
+                        <div class="mb-4">
+                            <label class="text-muted small text-uppercase fw-bold">URL</label>
+                            <div class="mt-1">
+                                <a th:href="${doc.url}" target="_blank"
+                                   class="text-decoration-none d-flex align-items-center">
+                                    <i class="bi bi-link-45deg text-spring-green me-2 fs-5"></i>
+                                    <span class="text-break" th:text="${doc.url}">URL</span>
+                                    <i class="bi bi-box-arrow-up-right ms-2 text-muted"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Project and Version -->
+                        <div class="mb-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="text-muted small text-uppercase fw-bold">Project</label>
+                                    <div class="mt-1">
+                                        <a th:href="@{/projects/{id}(id=${doc.version.project.id})}"
+                                           class="text-decoration-none">
+                                            <i class="bi bi-folder-fill text-spring-green me-1"></i>
+                                            <span th:text="${doc.version.project.name}">Spring Boot</span>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="text-muted small text-uppercase fw-bold">Version</label>
+                                    <div class="mt-1">
+                                        <a th:href="@{/versions/{id}(id=${doc.version.id})}"
+                                           class="text-decoration-none">
+                                            <code class="fs-5" th:text="${doc.version.version}">3.5.7</code>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Documentation Type -->
+                        <div class="mb-4">
+                            <label class="text-muted small text-uppercase fw-bold">Type</label>
+                            <div class="mt-1">
+                                <span class="badge fs-6"
+                                      th:classappend="${doc.docType.name == 'Reference'} ? 'bg-primary' :
+                                                     (${doc.docType.name == 'API'} ? 'bg-info text-dark' :
+                                                     (${doc.docType.name == 'Guide'} ? 'bg-success' :
+                                                     (${doc.docType.name == 'Tutorial'} ? 'bg-warning text-dark' : 'bg-secondary')))"
+                                      th:text="${doc.docType.name}">
+                                    Reference
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                        <!-- Status -->
+                        <div class="mb-4">
+                            <label class="text-muted small text-uppercase fw-bold">Status</label>
+                            <div class="mt-1">
+                                <span class="badge fs-6"
+                                      th:classappend="${doc.active} ? 'bg-success' : 'bg-secondary'">
+                                    <i class="bi"
+                                       th:classappend="${doc.active} ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+                                    <span th:text="${doc.active} ? 'Active' : 'Inactive'">Active</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Last Fetched -->
+                        <div class="mb-4">
+                            <label class="text-muted small text-uppercase fw-bold">Last Fetched</label>
+                            <div class="mt-1">
+                                <span th:if="${doc.lastFetched}">
+                                    <i class="bi bi-clock text-spring-green me-2"></i>
+                                    <span th:text="${#temporals.format(doc.lastFetched, 'MMMM dd, yyyy HH:mm:ss')}">
+                                        January 01, 2025 10:30:00
+                                    </span>
+                                </span>
+                                <span class="text-muted fst-italic" th:unless="${doc.lastFetched}">
+                                    <i class="bi bi-dash-circle me-2"></i>
+                                    Never fetched
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Content Hash -->
+                        <div class="mb-4" th:if="${doc.contentHash}">
+                            <label class="text-muted small text-uppercase fw-bold">Content Hash</label>
+                            <div class="mt-1">
+                                <code class="small" th:text="${doc.contentHash}">abc123def456...</code>
+                            </div>
+                        </div>
+
+                        <!-- Metadata -->
+                        <div class="mb-4">
+                            <label class="text-muted small text-uppercase fw-bold">Metadata</label>
+                            <div class="mt-1">
+                                <div class="small">
+                                    <div class="mb-2">
+                                        <i class="bi bi-clock text-muted me-1"></i>
+                                        <span class="text-muted">Created:</span>
+                                        <span th:text="${#temporals.format(doc.createdAt, 'MMM dd, yyyy HH:mm')}">
+                                            Jan 01, 2025 10:30
+                                        </span>
+                                    </div>
+                                    <div th:if="${doc.updatedAt}">
+                                        <i class="bi bi-arrow-clockwise text-muted me-1"></i>
+                                        <span class="text-muted">Updated:</span>
+                                        <span th:text="${#temporals.format(doc.updatedAt, 'MMM dd, yyyy HH:mm')}">
+                                            Jan 01, 2025 10:30
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Preview Card -->
+        <div class="card border-0 shadow-sm mb-4" th:if="${content != null}">
+            <div class="card-header bg-white border-bottom">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-earmark-text text-spring-green"></i>
+                        Content Preview
+                    </h5>
+                    <span class="badge bg-secondary" th:if="${content.contentType}"
+                          th:text="${content.contentType}">
+                        HTML
+                    </span>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <!-- Content Type Info -->
+                <div class="alert alert-info mb-3" th:if="${content.contentType}">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                        <div>
+                            <strong>Content Type:</strong>
+                            <span th:text="${content.contentType}">HTML</span>
+                            <span class="ms-3">
+                                <strong>Last Updated:</strong>
+                                <span th:text="${#temporals.format(content.updatedAt, 'MMM dd, yyyy HH:mm')}">
+                                    Jan 01, 2025 10:30
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Preview -->
+                <div class="content-preview">
+                    <div class="mb-3">
+                        <strong class="text-muted">Preview (first 5000 characters):</strong>
+                    </div>
+                    <div class="border rounded p-3 bg-light" style="max-height: 400px; overflow-y: auto;">
+                        <pre class="mb-0 small" th:text="${#strings.abbreviate(content.content, 5000)}">
+                            Content preview will be displayed here...
+                        </pre>
+                    </div>
+                </div>
+
+                <!-- Metadata -->
+                <div class="mt-3" th:if="${content.metadata}">
+                    <details>
+                        <summary class="text-muted fw-bold cursor-pointer">
+                            <i class="bi bi-code-square me-1"></i>
+                            Additional Metadata
+                        </summary>
+                        <div class="mt-2 border rounded p-3 bg-light">
+                            <pre class="mb-0 small" th:text="${content.metadata}">
+                                Metadata JSON
+                            </pre>
+                        </div>
+                    </details>
+                </div>
+
+                <!-- Full Content Link -->
+                <div class="mt-3 text-end">
+                    <a th:href="@{/documentation/{id}/content(id=${doc.id})}"
+                       class="btn btn-outline-primary btn-sm"
+                       target="_blank">
+                        <i class="bi bi-box-arrow-up-right"></i> View Full Content
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Content Card -->
+        <div class="card border-0 shadow-sm mb-4" th:unless="${content != null}">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-file-earmark-x display-1 text-muted"></i>
+                <h5 class="mt-3 text-muted">No Content Available</h5>
+                <p class="text-muted mb-4">
+                    This documentation link has not been fetched yet, or the content is not available.
+                </p>
+                <button type="button"
+                        class="btn btn-primary"
+                        sec:authorize="hasAnyRole('ADMIN', 'USER')"
+                        onclick="refreshContent()">
+                    <i class="bi bi-arrow-clockwise"></i> Fetch Content Now
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistics Card (if content exists) -->
+        <div class="card border-0 shadow-sm mb-4" th:if="${content != null}">
+            <div class="card-header bg-white border-bottom">
+                <h5 class="mb-0">
+                    <i class="bi bi-graph-up text-spring-green"></i>
+                    Content Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="text-center p-3 border rounded">
+                            <div class="display-6 text-spring-green" th:text="${#strings.length(content.content)}">
+                                0
+                            </div>
+                            <div class="small text-muted mt-2">Characters</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 border rounded">
+                            <div class="display-6 text-primary"
+                                 th:text="${#strings.length(content.content) / 1024}">
+                                0
+                            </div>
+                            <div class="small text-muted mt-2">KB (approx)</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 border rounded">
+                            <div class="display-6 text-info"
+                                 th:text="${#strings.arraySplit(content.content, ' ').length}">
+                                0
+                            </div>
+                            <div class="small text-muted mt-2">Words (approx)</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 border rounded">
+                            <div class="display-6 text-success"
+                                 th:text="${#strings.arraySplit(content.content, '\n').length}">
+                                0
+                            </div>
+                            <div class="small text-muted mt-2">Lines</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex gap-2">
+            <a th:href="@{/documentation}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+            <a th:href="${doc.url}" target="_blank" class="btn btn-outline-primary">
+                <i class="bi bi-box-arrow-up-right"></i> Open Original
+            </a>
+        </div>
+
+        <!-- Hidden Delete Form -->
+        <form id="delete-form"
+              th:action="@{/documentation/{id}/delete(id=${doc.id})}"
+              method="post"
+              class="d-none">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        </form>
+    </div>
+</th:block>
+
+<!-- Page-specific JavaScript -->
+<th:block th:replace="~{layout/base :: extraJs}">
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // Refresh documentation content
+        function refreshContent() {
+            if (!confirm('Refresh documentation content from source? This may take a few moments.')) {
+                return;
+            }
+            showLoading();
+            const docId = /*[[${doc.id}]]*/ 0;
+            fetch(`/api/documentation/${docId}/refresh`, {
+                method: 'POST',
+                headers: {
+                    [csrfHeader]: csrfToken
+                }
+            })
+            .then(response => {
+                hideLoading();
+                if (response.ok) {
+                    alert('Documentation refreshed successfully');
+                    location.reload();
+                } else {
+                    return response.text().then(text => {
+                        throw new Error(text || 'Failed to refresh documentation');
+                    });
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('Error:', error);
+                alert('Failed to refresh documentation: ' + error.message);
+            });
+        }
+        /*]]>*/
+    </script>
+
+    <style>
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        details summary {
+            user-select: none;
+        }
+
+        details summary:hover {
+            color: var(--spring-green);
+        }
+
+        .content-preview pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Courier New', Courier, monospace;
+            line-height: 1.5;
+        }
+    </style>
+</th:block>
+</body>
+</html>

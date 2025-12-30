@@ -1,0 +1,1003 @@
+/* Spring MCP Server - Custom Styles with Dark Mode */
+
+/* ============================================
+   Color Variables - Spring.io Dark Theme
+   Based on spring.io's dark mode design
+   ============================================ */
+:root {
+    /* Spring Brand Colors */
+    --spring-green: #6db33f;
+    --spring-green-dark: #5fa134;
+    --spring-green-light: #8cc656;
+
+    /* Dark Theme Colors (from spring.io) */
+    --spring-bg-dark: #1b1f23;           /* Main background */
+    --spring-card-bg: #1f2326;            /* Card/container background */
+    --spring-nav-bg: #2a2e31;             /* Navigation/header background */
+    --spring-border-dark: #373a3d;        /* Border color for dark theme */
+    --spring-hover-bg: #2d3135;           /* Hover backgrounds */
+
+    /* Text Colors */
+    --text-primary: #ffffff;              /* Primary text (white) */
+    --text-secondary: #a0a0a0;            /* Secondary text (muted) */
+    --text-muted: #6c757d;                /* Even more muted text */
+
+    /* Status Colors */
+    --danger-red: #dc3545;
+    --warning-orange: #fd7e14;
+    --info-blue: #17a2b8;
+    --success-green: #28a745;
+
+    /* Shadows for dark mode */
+    --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================
+   Global Styles
+   ============================================ */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--text-primary) !important;
+    background-color: var(--spring-bg-dark) !important;
+    line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary) !important;
+    font-weight: 600;
+}
+
+a {
+    color: var(--spring-green);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--spring-green-light);
+    text-decoration: none;
+}
+
+/* ============================================
+   Navigation Bar
+   ============================================ */
+.navbar {
+    background-color: var(--spring-nav-bg);
+    box-shadow: var(--shadow-sm);
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--spring-border-dark);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: var(--spring-green);
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.navbar-brand:hover {
+    color: var(--spring-green-light);
+}
+
+.navbar-brand-logo {
+    height: 32px;
+    margin-right: 0.5rem;
+}
+
+.nav-link {
+    color: var(--text-secondary);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+    color: var(--spring-green-light);
+}
+
+.nav-link.active {
+    color: var(--spring-green);
+    font-weight: 600;
+}
+
+.navbar-user {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.navbar-user-name {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* ============================================
+   Sidebar
+   ============================================ */
+.sidebar {
+    position: sticky;
+    top: 56px;
+    height: calc(100vh - 56px);
+    background-color: var(--spring-nav-bg) !important;
+    border-right: 1px solid var(--spring-border-dark);
+    padding-top: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.sidebar .nav-link {
+    font-weight: 500;
+    color: var(--text-secondary);
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.sidebar .nav-link:hover {
+    color: var(--spring-green-light);
+    background-color: var(--spring-hover-bg);
+}
+
+.sidebar .nav-link.active {
+    color: var(--spring-green);
+    background-color: var(--spring-hover-bg);
+    font-weight: 600;
+}
+
+.sidebar .nav-link i {
+    margin-right: 0.5rem;
+    color: inherit;
+}
+
+/* ============================================
+   Main Content Area
+   ============================================ */
+main {
+    padding-top: 20px;
+    background-color: var(--spring-bg-dark);
+}
+
+.main-content {
+    padding: 2rem 0;
+    min-height: calc(100vh - 200px);
+}
+
+.container-main {
+    max-width: 1200px;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+
+/* ============================================
+   Cards
+   ============================================ */
+.card {
+    border: 1px solid var(--spring-border-dark);
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-sm);
+    background-color: var(--spring-card-bg) !important;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.card-header {
+    background-color: var(--spring-nav-bg) !important;
+    border-bottom: 1px solid var(--spring-border-dark);
+    font-weight: 600;
+    color: var(--text-primary) !important;
+    padding: 1rem 1.25rem;
+}
+
+.card-body {
+    padding: 1.25rem;
+    color: var(--text-primary) !important;
+}
+
+.card-footer {
+    background-color: var(--spring-nav-bg) !important;
+    border-top: 1px solid var(--spring-border-dark);
+    padding: 0.75rem 1.25rem;
+}
+
+.card-clickable {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.card-clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* ============================================
+   Buttons
+   ============================================ */
+.btn {
+    padding: 0.5rem 1.25rem;
+    font-weight: 500;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.btn-primary {
+    background-color: var(--spring-green);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--spring-green-dark);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    color: white;
+}
+
+.btn-outline-primary {
+    border: 2px solid var(--spring-green);
+    color: var(--spring-green);
+    background-color: transparent;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--spring-green);
+    color: white;
+}
+
+.btn-danger {
+    background-color: var(--danger-red);
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    color: white;
+}
+
+.btn-success {
+    background-color: var(--success-green);
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    color: white;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.125rem;
+}
+
+/* ============================================
+   Tables
+   ============================================ */
+.table {
+    background-color: var(--spring-card-bg);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    color: var(--text-primary);
+}
+
+.table thead th {
+    background-color: var(--spring-nav-bg);
+    color: var(--text-primary);
+    font-weight: 600;
+    border-bottom: 2px solid var(--spring-border-dark);
+    padding: 1rem;
+}
+
+.table tbody tr {
+    background-color: var(--spring-card-bg) !important;
+    transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: var(--spring-hover-bg) !important;
+}
+
+.table td {
+    padding: 1rem;
+    vertical-align: middle;
+    color: var(--text-primary);
+    border-color: var(--spring-border-dark);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(42, 46, 49, 0.3);
+}
+
+.table-bordered {
+    border: 1px solid var(--spring-border-dark);
+}
+
+/* ============================================
+   Forms
+   ============================================ */
+.form-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.form-control {
+    border: 1px solid var(--spring-border-dark);
+    border-radius: 0.375rem;
+    padding: 0.625rem 0.875rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background-color: var(--spring-card-bg);
+    color: var(--text-primary);
+}
+
+.form-control:focus {
+    border-color: var(--spring-green);
+    box-shadow: 0 0 0 0.2rem rgba(109, 179, 63, 0.25);
+    outline: none;
+    background-color: var(--spring-card-bg);
+    color: var(--text-primary);
+}
+
+.form-select {
+    border: 1px solid var(--spring-border-dark);
+    border-radius: 0.375rem;
+    padding: 0.625rem 0.875rem;
+    transition: border-color 0.2s ease;
+    background-color: var(--spring-card-bg);
+    color: var(--text-primary);
+}
+
+.form-select:focus {
+    border-color: var(--spring-green);
+    box-shadow: 0 0 0 0.2rem rgba(109, 179, 63, 0.25);
+    outline: none;
+}
+
+.form-check-input:checked {
+    background-color: var(--spring-green);
+    border-color: var(--spring-green);
+}
+
+.form-text {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.invalid-feedback {
+    color: var(--danger-red);
+    font-size: 0.875rem;
+}
+
+/* ============================================
+   Badges
+   ============================================ */
+.badge {
+    padding: 0.35rem 0.65rem;
+    margin-left: 0.35rem;
+    font-weight: 500;
+    border-radius: 0.25rem;
+}
+
+.badge-primary {
+    background-color: var(--spring-green);
+    color: white;
+}
+
+.badge-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.badge-success {
+    background-color: var(--success-green);
+    color: white;
+}
+
+.badge-danger {
+    background-color: var(--danger-red);
+    color: white;
+}
+
+.badge-warning {
+    background-color: var(--warning-orange);
+    color: white;
+}
+
+.badge-info {
+    background-color: var(--info-blue);
+    color: white;
+}
+
+/* ============================================
+   Alerts
+   ============================================ */
+.alert {
+    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+}
+
+.alert-success {
+    background-color: rgba(40, 167, 69, 0.2);
+    border-color: var(--success-green);
+    color: #8cc656;
+}
+
+.alert-danger {
+    background-color: rgba(220, 53, 69, 0.2);
+    border-color: var(--danger-red);
+    color: #ff6b6b;
+}
+
+.alert-warning {
+    background-color: rgba(253, 126, 20, 0.2);
+    border-color: var(--warning-orange);
+    color: #ffa94d;
+}
+
+.alert-info {
+    background-color: rgba(23, 162, 184, 0.2);
+    border-color: var(--info-blue);
+    color: #4dabf7;
+}
+
+/* ============================================
+   Stats Cards
+   ============================================ */
+.stat-card {
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    background-color: var(--spring-card-bg);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid var(--spring-border-dark);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-card-icon {
+    font-size: 2.5rem;
+    color: var(--spring-green);
+    margin-bottom: 0.5rem;
+}
+
+.stat-card-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.stat-card-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+/* ============================================
+   Footer
+   ============================================ */
+footer {
+    background-color: var(--spring-nav-bg);
+    border-top: 1px solid var(--spring-border-dark);
+    padding: 2rem 0;
+    margin-top: 3rem;
+}
+
+.footer-text {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.footer-links a {
+    color: var(--text-secondary);
+    margin: 0 0.5rem;
+}
+
+.footer-links a:hover {
+    color: var(--spring-green-light);
+}
+
+/* ============================================
+   Breadcrumbs
+   ============================================ */
+.breadcrumb {
+    background-color: transparent;
+    padding: 0.75rem 0;
+    margin-bottom: 1rem;
+}
+
+.breadcrumb-item a {
+    color: var(--spring-green);
+}
+
+.breadcrumb-item.active {
+    color: var(--text-secondary);
+}
+
+/* ============================================
+   Dropdown Menus
+   ============================================ */
+.dropdown-menu {
+    border: 1px solid var(--spring-border-dark);
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-md);
+    padding: 0.5rem 0;
+    background-color: var(--spring-card-bg);
+}
+
+.dropdown-item {
+    color: var(--text-primary);
+    padding: 0.5rem 1.25rem;
+    transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: var(--spring-hover-bg);
+    color: var(--spring-green-light);
+}
+
+.dropdown-divider {
+    border-top-color: var(--spring-border-dark);
+}
+
+/* ============================================
+   Loading Spinner
+   ============================================ */
+.spinner-spring {
+    border: 3px solid var(--spring-border-dark);
+    border-top: 3px solid var(--spring-green);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ============================================
+   Pagination
+   ============================================ */
+.pagination .page-link {
+    color: var(--spring-green);
+    border: 1px solid var(--spring-border-dark);
+    background-color: var(--spring-card-bg);
+}
+
+.pagination .page-link:hover {
+    background-color: var(--spring-hover-bg);
+    color: var(--spring-green-light);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--spring-green);
+    border-color: var(--spring-green);
+    color: var(--text-primary);
+}
+
+/* ============================================
+   Search Bar
+   ============================================ */
+.search-bar {
+    position: relative;
+}
+
+.search-bar input {
+    padding-left: 2.5rem;
+}
+
+.search-bar-icon {
+    position: absolute;
+    left: 0.875rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+.text-spring-green {
+    color: var(--spring-green);
+}
+
+.bg-spring-green {
+    background-color: var(--spring-green);
+}
+
+.border-spring-green {
+    border-color: var(--spring-green);
+}
+
+.shadow-spring {
+    box-shadow: var(--shadow-md);
+}
+
+/* ============================================
+   Responsive Utilities
+   ============================================ */
+@media (max-width: 768px) {
+    .page-title {
+        font-size: 1.5rem;
+    }
+
+    .stat-card {
+        margin-bottom: 1rem;
+    }
+
+    .table {
+        font-size: 0.875rem;
+    }
+
+    .main-content {
+        padding: 1rem 0;
+    }
+
+    .sidebar {
+        position: relative;
+        height: auto;
+    }
+}
+
+@media (max-width: 576px) {
+    .btn {
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+}
+
+/* ============================================
+   Bootstrap Overrides - Force Dark Mode
+   These must come last to override Bootstrap
+   ============================================ */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--spring-green) var(--spring-nav-bg);
+}
+
+/* Override all Bootstrap backgrounds */
+.bg-white {
+    background-color: var(--spring-card-bg) !important;
+}
+
+.bg-light {
+    background-color: var(--spring-nav-bg) !important;
+}
+
+.text-dark {
+    color: var(--text-primary) !important;
+}
+
+.text-muted {
+    color: var(--text-secondary) !important;
+}
+
+/* Main content area - override Bootstrap container */
+.container-fluid {
+    background-color: var(--spring-bg-dark) !important;
+}
+
+/* Override row backgrounds */
+.row {
+    background-color: transparent !important;
+}
+
+/* Force all text to be light colored */
+p, span, div, label, small {
+    color: inherit;
+}
+
+/* ============================================
+   Bootstrap Table Overrides for Dark Mode
+   ============================================ */
+.table-light,
+.table-light > th,
+.table-light > td {
+    background-color: var(--spring-nav-bg) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--spring-border-dark) !important;
+}
+
+.table > :not(caption) > * > * {
+    background-color: var(--spring-card-bg) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--spring-border-dark) !important;
+}
+
+/* Override any Bootstrap default table row backgrounds */
+.table > tbody > tr {
+    background-color: var(--spring-card-bg) !important;
+}
+
+.table > tbody > tr:hover {
+    background-color: var(--spring-hover-bg) !important;
+}
+
+/* Override striped table rows */
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: rgba(42, 46, 49, 0.5) !important;
+}
+
+.table-striped > tbody > tr:nth-of-type(even) > * {
+    background-color: var(--spring-card-bg) !important;
+}
+
+/* Override hover for striped tables */
+.table-striped > tbody > tr:hover > * {
+    background-color: var(--spring-hover-bg) !important;
+}
+
+/* ============================================
+   Step Cards (Getting Started Section)
+   ============================================ */
+.step-card {
+    background-color: var(--spring-card-bg) !important;
+    color: var(--text-primary) !important;
+    border: 2px solid rgb(240, 240, 240) !important;
+    border-radius: 12px !important;
+}
+
+.step-card h5,
+.step-card p,
+.step-card code {
+    color: var(--text-primary) !important;
+}
+
+.step-card code {
+    background-color: var(--spring-nav-bg) !important;
+    color: var(--spring-green) !important;
+}
+
+/* Override Bootstrap bg-light for code elements */
+code.text-spring,
+code.bg-light {
+    background-color: var(--spring-nav-bg) !important;
+    color: var(--spring-green) !important;
+}
+
+/* ============================================
+   Modal Overrides for Dark Mode
+   ============================================ */
+.modal-content {
+    background-color: var(--spring-card-bg) !important;
+    border: 1px solid var(--spring-border-dark);
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    background-color: var(--spring-nav-bg) !important;
+    border-bottom: 1px solid var(--spring-border-dark);
+    color: var(--text-primary) !important;
+}
+
+.modal-header .modal-title {
+    color: var(--text-primary) !important;
+}
+
+.modal-body {
+    background-color: var(--spring-card-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-footer {
+    background-color: var(--spring-card-bg) !important;
+    border-top: 1px solid var(--spring-border-dark);
+}
+
+.modal-backdrop {
+    background-color: #000;
+}
+
+.modal-backdrop.show {
+    opacity: 0.7;
+}
+
+.btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Danger Modal (for delete actions) */
+.modal-header.bg-danger {
+    background-color: var(--danger-red) !important;
+    border-bottom-color: rgba(220, 53, 69, 0.5);
+}
+
+/* Warning Modal (for deactivate actions) */
+.modal-header.bg-warning {
+    background-color: var(--warning-orange) !important;
+    color: #1b1f23 !important;
+}
+
+.modal-header.bg-warning .modal-title {
+    color: #1b1f23 !important;
+}
+
+.modal-header.bg-warning .btn-close {
+    filter: none;
+}
+
+/* ============================================
+   Collapsible Sidebar
+   ============================================ */
+
+/* Sidebar Toggle Button Container */
+.sidebar-toggle-container {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--spring-border-dark);
+    margin-bottom: 0.5rem;
+}
+
+.sidebar-toggle-btn {
+    background-color: transparent;
+    border: 1px solid var(--spring-border-dark);
+    color: var(--text-secondary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-toggle-btn:hover {
+    background-color: var(--spring-hover-bg);
+    color: var(--spring-green);
+    border-color: var(--spring-green);
+}
+
+.sidebar-toggle-btn i {
+    transition: transform 0.3s ease;
+}
+
+/* Nav text styling */
+.sidebar .nav-link .nav-text {
+    margin-left: 0.5rem;
+    transition: opacity 0.2s ease, width 0.2s ease;
+    white-space: nowrap;
+}
+
+/* Sidebar icons - ensure consistent sizing */
+.sidebar .nav-link i {
+    width: 1.25rem;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* Sidebar collapsed state */
+.sidebar.collapsed {
+    width: 60px !important;
+    min-width: 60px !important;
+    max-width: 60px !important;
+}
+
+.sidebar.collapsed .nav-text {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+    display: none;
+}
+
+.sidebar.collapsed .nav-link {
+    justify-content: center;
+    padding: 0.75rem 0.5rem;
+}
+
+.sidebar.collapsed .nav-link i {
+    margin-right: 0;
+    font-size: 1.1rem;
+}
+
+.sidebar.collapsed .sidebar-toggle-container {
+    justify-content: center;
+    padding: 0.5rem 0.25rem;
+}
+
+.sidebar.collapsed .sidebar-toggle-btn i {
+    transform: rotate(180deg);
+}
+
+/* Tooltip for collapsed sidebar items */
+.sidebar.collapsed .nav-link {
+    position: relative;
+}
+
+.sidebar.collapsed .nav-link::after {
+    content: attr(data-title);
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: var(--spring-nav-bg);
+    color: var(--text-primary);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.25rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    z-index: 1000;
+    margin-left: 0.5rem;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--spring-border-dark);
+    font-size: 0.875rem;
+}
+
+.sidebar.collapsed .nav-link:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Main content area adjustment when sidebar is collapsed */
+main {
+    transition: all 0.3s ease;
+}
+
+main.sidebar-collapsed {
+    flex: 0 0 calc(100% - 60px) !important;
+    max-width: calc(100% - 60px) !important;
+    width: calc(100% - 60px) !important;
+}
+
+/* Smooth transition for sidebar width */
+.sidebar {
+    transition: width 0.3s ease, min-width 0.3s ease, max-width 0.3s ease;
+}
+
+/* Hide hr separator in collapsed state */
+.sidebar.collapsed hr {
+    margin: 0.5rem 0.25rem;
+}
+
+/* Responsive adjustments for collapsed sidebar */
+@media (max-width: 768px) {
+    .sidebar.collapsed {
+        width: 50px !important;
+        min-width: 50px !important;
+    }
+}

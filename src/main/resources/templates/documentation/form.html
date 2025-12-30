@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title th:text="${documentation.id != null ? 'Edit Documentation - ' + documentation.title : 'Add New Documentation'} + ' - Spring MCP Server'">
+        Documentation Form - Spring MCP Server
+    </title>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item">
+                        <a th:href="@{/documentation}" class="text-decoration-none">
+                            <i class="bi bi-file-earmark-text"></i> Documentation
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page"
+                        th:text="${documentation.id != null ? 'Edit: ' + documentation.title : 'New Documentation'}">
+                        New Documentation
+                    </li>
+                </ol>
+            </nav>
+            <h1 class="h2">
+                <i class="bi bi-file-earmark-plus text-spring-green"></i>
+                <span th:text="${documentation.id != null ? 'Edit Documentation' : 'Add New Documentation'}">Add New Documentation</span>
+            </h1>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-spring-green text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-pencil-square"></i>
+                        <span th:text="${documentation.id != null ? 'Documentation Details' : 'New Documentation Information'}">
+                            Documentation Information
+                        </span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Error Messages -->
+                    <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <strong>Validation Error!</strong> Please correct the errors below.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <!-- Form -->
+                    <form th:action="${documentation.id != null ? '/documentation/' + documentation.id : '/documentation'}"
+                          method="post"
+                          th:object="${documentation}">
+
+                        <!-- Hidden ID field for edit -->
+                        <input type="hidden" th:if="${documentation.id != null}" th:field="*{id}">
+
+                        <!-- Version Selection -->
+                        <div class="mb-3">
+                            <label for="version" class="form-label">
+                                Project Version <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select"
+                                    th:classappend="${#fields.hasErrors('version')} ? 'is-invalid'"
+                                    id="version"
+                                    th:field="*{version.id}"
+                                    required
+                                    th:disabled="${documentation.id != null}">
+                                <option value="">-- Select Version --</option>
+                                <optgroup th:each="project : ${projects}" th:label="${project.name}">
+                                    <option th:each="ver : ${project.versions}"
+                                            th:value="${ver.id}"
+                                            th:text="${ver.version}"
+                                            th:selected="${documentation.version != null and documentation.version.id == ver.id}">
+                                        Version
+                                    </option>
+                                </optgroup>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('version')}">
+                                <span th:errors="*{version}">Version error</span>
+                            </div>
+                            <div class="form-text">Select the project version this documentation applies to</div>
+                        </div>
+
+                        <!-- Documentation Type Selection -->
+                        <div class="mb-3">
+                            <label for="docType" class="form-label">
+                                Documentation Type <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select"
+                                    th:classappend="${#fields.hasErrors('docType')} ? 'is-invalid'"
+                                    id="docType"
+                                    th:field="*{docType.id}"
+                                    required>
+                                <option value="">-- Select Type --</option>
+                                <option th:each="type : ${docTypes}"
+                                        th:value="${type.id}"
+                                        th:text="${type.name}"
+                                        th:selected="${documentation.docType != null and documentation.docType.id == type.id}">
+                                    Type
+                                </option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('docType')}">
+                                <span th:errors="*{docType}">Documentation type error</span>
+                            </div>
+                            <div class="form-text">Select the type of documentation (e.g., Overview, Learn, Support, Samples)</div>
+                        </div>
+
+                        <!-- Title -->
+                        <div class="mb-3">
+                            <label for="title" class="form-label">
+                                Title <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'"
+                                   id="title"
+                                   th:field="*{title}"
+                                   placeholder="e.g., Spring Boot Reference Documentation"
+                                   required
+                                   maxlength="255">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('title')}">
+                                <span th:errors="*{title}">Title error</span>
+                            </div>
+                            <div class="form-text">A descriptive title for this documentation link</div>
+                        </div>
+
+                        <!-- URL -->
+                        <div class="mb-3">
+                            <label for="url" class="form-label">
+                                URL <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-link-45deg"></i>
+                                </span>
+                                <input type="url"
+                                       class="form-control"
+                                       th:classappend="${#fields.hasErrors('url')} ? 'is-invalid'"
+                                       id="url"
+                                       th:field="*{url}"
+                                       placeholder="https://docs.spring.io/spring-boot/reference/"
+                                       required
+                                       maxlength="1000">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('url')}">
+                                    <span th:errors="*{url}">URL error</span>
+                                </div>
+                            </div>
+                            <div class="form-text">The URL to the documentation resource</div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control"
+                                      th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"
+                                      id="description"
+                                      th:field="*{description}"
+                                      rows="4"
+                                      placeholder="Brief description of what this documentation covers..."></textarea>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('description')}">
+                                <span th:errors="*{description}">Description error</span>
+                            </div>
+                            <div class="form-text">A brief description of the documentation content</div>
+                        </div>
+
+                        <!-- Active Status -->
+                        <div class="mb-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       id="isActive"
+                                       th:field="*{isActive}"
+                                       checked>
+                                <label class="form-check-label" for="isActive">
+                                    <strong>Active Documentation Link</strong>
+                                </label>
+                            </div>
+                            <div class="form-text ms-4">Only active documentation links are visible in the MCP server</div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between align-items-center border-top pt-3">
+                            <a th:href="@{/documentation}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-spring-green">
+                                <i class="bi bi-check-circle"></i>
+                                <span th:text="${documentation.id != null ? 'Update Documentation' : 'Create Documentation'}">
+                                    Create Documentation
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Panel -->
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-lightbulb text-spring-green"></i> Tips
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6>Project Version</h6>
+                    <p class="small">Select the specific project version this documentation applies to. Versions are grouped by project for easy selection.</p>
+
+                    <h6>Documentation Type</h6>
+                    <p class="small">Choose the appropriate type:</p>
+                    <ul class="small">
+                        <li><strong>Overview:</strong> High-level project information</li>
+                        <li><strong>Learn:</strong> Getting started guides and tutorials</li>
+                        <li><strong>Support:</strong> Community and support resources</li>
+                        <li><strong>Samples:</strong> Example code and projects</li>
+                    </ul>
+
+                    <h6>Title</h6>
+                    <p class="small">Use a clear, descriptive title that identifies the documentation resource.</p>
+
+                    <h6>URL</h6>
+                    <p class="small">Enter the full URL to the documentation. Make sure it's a valid, accessible link.</p>
+
+                    <div class="alert alert-info mt-3" role="alert">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Note:</strong> Documentation links are automatically synchronized with the content at the specified URL. The system will periodically check for updates.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Examples Card -->
+            <div class="card mt-3">
+                <div class="card-header bg-spring-green text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-card-list"></i> Examples
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Spring Boot Reference</strong>
+                        <ul class="small mb-0 mt-1">
+                            <li>Type: <code>Learn</code></li>
+                            <li>Title: <code>Spring Boot Reference Documentation</code></li>
+                            <li>URL: <code>https://docs.spring.io/spring-boot/reference/</code></li>
+                        </ul>
+                    </div>
+                    <div class="mb-3">
+                        <strong>API Documentation</strong>
+                        <ul class="small mb-0 mt-1">
+                            <li>Type: <code>Learn</code></li>
+                            <li>Title: <code>Spring Boot API Docs</code></li>
+                            <li>URL: <code>https://docs.spring.io/spring-boot/api/java/</code></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <strong>Getting Started Guide</strong>
+                        <ul class="small mb-0 mt-1">
+                            <li>Type: <code>Learn</code></li>
+                            <li>Title: <code>Building a RESTful Web Service</code></li>
+                            <li>URL: <code>https://spring.io/guides/gs/rest-service/</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles and Scripts -->
+<th:block layout:fragment="scripts">
+    <style>
+        .bg-spring-green {
+            background-color: #6db33f;
+        }
+
+        .text-spring-green {
+            color: #6db33f;
+        }
+
+        .btn-spring-green {
+            background-color: #6db33f;
+            border-color: #6db33f;
+            color: white;
+        }
+
+        .btn-spring-green:hover {
+            background-color: #5a9a35;
+            border-color: #5a9a35;
+            color: white;
+        }
+
+        .breadcrumb-item + .breadcrumb-item::before {
+            color: #6c757d;
+        }
+
+        .breadcrumb-item.active {
+            color: #6db33f;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #6db33f;
+            box-shadow: 0 0 0 0.2rem rgba(109, 179, 63, 0.25);
+        }
+
+        .form-check-input:checked {
+            background-color: #6db33f;
+            border-color: #6db33f;
+        }
+
+        .form-check-input:focus {
+            border-color: #6db33f;
+            box-shadow: 0 0 0 0.2rem rgba(109, 179, 63, 0.25);
+        }
+
+        .is-invalid:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+    </style>
+
+    <script>
+        // Form validation
+        (function() {
+            'use strict'
+            const forms = document.querySelectorAll('form');
+            Array.from(forms).forEach(function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
+    </script>
+</th:block>
+</body>
+</html>
